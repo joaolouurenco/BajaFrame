@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "name": "Estudo - travamento dianteiro",
+  "params": {
+    "baseWidth": 660,
+    "topWidth": 760,
+    "simWidth": 740,
+    "frontWidth": 440,
+    "rrhHeight": 1180,
+    "rrhAngle": 10,
+    "simHeight": 420,
+    "roofLength": 860,
+    "cockpitLength": 1120,
+    "noseLength": 300,
+    "rearLength": 520,
+    "rearHeight": 580,
+    "floorPosition": 64,
+    "primaryDiameter": 31.8,
+    "secondaryDiameter": 25.4
+  },
+  "bracing": "front",
+  "symmetry": true,
+  "offsets": {
+    "A_R": [
+      0,
+      0,
+      0
+    ],
+    "S_R": [
+      0,
+      0,
+      0
+    ],
+    "B_R": [
+      0,
+      0,
+      0
+    ],
+    "C_R": [
+      0,
+      0,
+      0
+    ],
+    "D_R": [
+      0,
+      0,
+      0
+    ],
+    "F_R": [
+      0,
+      0,
+      0
+    ],
+    "R_R": [
+      0,
+      0,
+      0
+    ]
+  }
+}
