@@ -1,5 +1,6 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
+  "materialDensity": 7850,
   "name": "Estudo - travamento dianteiro",
   "params": {
     "baseWidth": 660,
@@ -16,7 +17,9 @@
     "rearHeight": 580,
     "floorPosition": 64,
     "primaryDiameter": 31.8,
-    "secondaryDiameter": 25.4
+    "secondaryDiameter": 25.4,
+    "primaryThickness": 1.6,
+    "secondaryThickness": 1.2
   },
   "bracing": "front",
   "symmetry": true,

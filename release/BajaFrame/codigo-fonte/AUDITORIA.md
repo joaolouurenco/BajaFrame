@@ -1,98 +1,78 @@
-# Auditoria da entrega — BajaFrame 1.0
+# Auditoria da entrega — BajaFrame 1.1
 
-Data: 19 de setembro de 2026.
+Data: 26 de setembro de 2026. Este relatório descreve as verificações desta evolução; o relatório anterior permanece no histórico Git.
 
-## Resultado e escopo
+## Escopo entregue
 
-A entrega implementa o escopo acordado: visualizador local do frame, parâmetros ajustáveis, identificação de membros, edição de pontos por coordenadas e eixos 3D, simetria, configurações de travamento, persistência e compartilhamento de configurações. Banco, piloto, motor e suspensão não foram agregados ao produto. Não há declaração de aprovação regulamentar, análise estrutural ou modelo de fabricação.
+Espessura global por categoria, densidade global, funções puras para diâmetro interno, área, volume e massa, totais do frame por categoria, controles recolhíveis em Estrutura → Avançado e propriedades do membro selecionado. O 3D continua usando o diâmetro externo. Arquivos V1 migram para V2; resultados derivados não são gravados no JSON. Não foram adicionados backend, dependências, STEP/STP, FEA ou certificação RATBSB.
 
-Auditoria realizada pelo próprio agente que implementou o projeto, com testes automatizados e inspeção da interface. Não é uma revisão independente de engenharia. A aprovação descrita abaixo é do funcionamento do software dentro do escopo, não do chassi segundo o regulamento.
+Auditoria executada pelo agente implementador. Não constitui revisão independente de engenharia nem validação estrutural do chassi.
 
-## Ambiente
+## Ambiente e comandos
 
-- Windows, Node.js 24.14.1, npm 11.11.0.
-- Dependências exatas registradas no `package-lock.json`.
-- Navegador Chromium integrado ao ambiente de trabalho, com WebGL disponível.
-- Testes de interface em 1280 × 720 e em viewport estreito de 390 × 844. Nesse último, a área útil apresentou 375 px por conta da barra de rolagem; a largura do documento também foi 375 px, sem transbordamento horizontal.
-- Desenvolvimento em `127.0.0.1:3000`; pacote estático em `127.0.0.1:4173`.
+Windows; Node.js 24.14.1; npm 11.11.0; navegador Chromium integrado com WebGL disponível. Aplicação de desenvolvimento em 127.0.0.1:3001; HTML compilado servido estaticamente por `npm run preview -- --port 4174`.
 
-## Verificações automatizadas
+- `npm test`: **30 testes aprovados, zero falhas**.
+- `npm run build`: TypeScript aprovado; Vite gerou um HTML com JavaScript e CSS embutidos, aproximadamente 888 kB. Permanecem dois avisos de empacotamento sobre `use client` em lucide-react; não impediram compilação ou execução nos fluxos testados.
+- `node scripts/package.mjs`: regenerou `release/BajaFrame`, incluindo HTML, documentação, fontes, lockfile, testes, fixtures e três exemplos V2.
+- `npm run audit:portable`: aprovado. Conferiu HTML igual ao build, recursos embutidos, documentos, licenças, exemplos V2 e igualdade das fontes/testes/scripts distribuídos com os originais.
+- Nenhuma dependência foi acrescentada ou atualizada. O manifest e o lockfile receberam a versão 1.1.0 do aplicativo.
 
-`npm test`: **16 testes aprovados; 0 falhas**.
+## Testes automatizados e regressões
 
-1. Grafo único e conectado para travamento dianteiro, traseiro e combinado; pontos e identificadores consistentes.
-2. Valores mínimo e máximo de cada um dos 15 parâmetros nas três configurações: **90 combinações**.
-3. **120 combinações adicionais**, com gerador pseudoaleatório de semente fixa para repetibilidade.
-4. Movimento de cada um dos sete tipos de ponto, a partir de ambos os lados, preservando o espelhamento e as conexões.
-5. Edição independente e reativação de simetria usando o lado esquerdo.
-6. Desativação da simetria sem deslocamento inesperado de um ponto já ajustado.
-7. Pontos derivados acompanhando seus membros de apoio.
-8. Diâmetros independentes para membros primários e secundários.
-9. Impossibilidade de mover livremente um ponto vinculado pela função de edição.
-10. Limites de coordenadas na edição e rejeição de valores não finitos.
-11. Serialização e leitura de JSON preservando a geometria.
-12. Rejeição de versões incompatíveis, parâmetros fora de faixa e ajustes malformados.
-13. Descarte de propriedades desconhecidas na importação.
-14. Dimensões e soma dos comprimentos calculadas a partir da geometria efetiva.
-15. Preservação dos deslocamentos locais ao mudar uma dimensão-base.
-16. Aviso para pontos coincidentes, sem introduzir números inválidos no modelo.
+Os 16 testes anteriores foram mantidos, com atualização do nome `outerDiameter` e da versão usada no caso de rejeição. Continuam cobrindo conectividade, simetria, offsets, edição independente, pontos derivados, limites de coordenadas, serialização, importações inválidas e comprimentos. O teste de extremos agora percorre os 17 parâmetros em três travamentos: **102 combinações**, além das **120 combinações de semente fixa** existentes.
 
-`npm run build`: TypeScript sem erros e compilação concluída. O empacotador registra dois avisos sobre a diretiva `use client` da biblioteca de ícones; não há componentes de servidor neste aplicativo e os ícones foram verificados na interface. Os avisos não impediram a geração nem a execução.
+Os 14 novos testes verificam padrões, herança por categoria, diâmetro interno, área, volume, conversão de massa, totais por categoria, efeito da densidade/parede sem alteração da geometria externa, rejeição de entradas físicas inválidas, migração V1 e leitura/escrita V2. As comparações físicas usam tolerância relativa de 1e-10, com piso absoluto de 1e-10.
 
-`npm audit`: **0 vulnerabilidades conhecidas** reportadas na data da auditoria, incluindo dependências de desenvolvimento. É uma consulta ao banco do npm naquele momento, não garantia de ausência de falhas desconhecidas.
+`tests/fixtures/legacy-v1.json` foi capturado do modelo original antes da alteração, com offsets independentes e os três travamentos. Após a migração, os testes comparam exatamente pontos, conexões, identificadores, categorias, diâmetros externos, comprimentos e limites geométricos com essa referência. As comparações passaram.
 
-## Verificações em navegador real
+Foram verificadas rejeições de paredes ausentes, não numéricas, não finitas, não positivas e fora dos limites, além da condição estrita `2t < D` nas funções físicas e na fronteira do modelo. O parser valida intervalos e chama a mesma validação física; os intervalos atuais da interface já impedem combinações com `2t >= D`.
+
+## Verificações no navegador
 
 | Cenário | Resultado observado |
 | --- | --- |
-| Inicialização do 3D | Frame renderizado, 30 membros no exemplo traseiro, sem erros de console nos fluxos observados |
-| Campo numérico | Altura alterada de 1.180 para 1.300 mm; medida inferior atualizada |
-| Desfazer | Altura retornou a 1.180 mm |
-| Slider pelo teclado | Seta direita levou a altura a 1.190 mm |
-| Espelhamento | B_L movido a Y=450 mm; B_R passou a Y=-450 mm e a largura a 900 mm |
-| Arraste real do manipulador | Na vista lateral, eixo X de B_R arrastado de aproximadamente -209,8 mm a 20 mm; o frame acompanhou |
-| Desfazer o arraste | Um único Desfazer restaurou X≈-209,8 mm |
-| Configurações | 27 membros no dianteiro, 30 no traseiro e 34 no combinado |
-| Importar exemplo | JSON combinado abriu com nome e 34 membros corretos |
-| Download | Arquivo JSON foi encontrado na pasta de downloads e reaberto pelo aplicativo; o evento de download do conector expirou, mas o arquivo foi gerado corretamente |
-| Reabrir JSON baixado | Configuração combinada restaurada com 34 membros |
-| Persistência | Recarregamento preservou o projeto salvo automaticamente no navegador |
-| Arquivo inválido | Importação da versão 99 foi rejeitada com mensagem; o frame de 34 membros permaneceu aberto |
-| Vistas | Perspectiva, lateral, superior e frontal acionadas na interface |
-| Cotas | Conferidas na vista superior; tamanho de texto ajustado para permanecer legível com a câmera |
-| Responsividade | Cena, métricas, cabeçalho e controles acessíveis no viewport estreito, com rolagem vertical |
-| Ajuda | Diálogo aberto e conteúdo de uso disponível |
+| Estado inicial | Frame traseiro com 30 membros; massa 26,58 kg, primários 16,35 kg, secundários 10,23 kg |
+| Parede primária | Mudança de 1,6 para 2 mm levou a massa a 30,39 kg |
+| Desfazer e Refazer | Massa retornou a 26,58 kg e depois a 30,39 kg |
+| Densidade | Com parede primária de 2 mm, mudar 7.850 para 15.700 kg/m³ levou a massa exibida a 60,79 kg; o teste numérico confirma duplicação antes do arredondamento |
+| Membro selecionado | RRH_L mostrou categoria, comprimento 1.200,1 mm, diâmetro externo 31,8 mm, parede 2 mm, interno 27,8 mm e massa 3,528 kg na densidade de 15.700 kg/m³ |
+| Persistência V2 | Após recarregar, parede de 2 mm, densidade de 15.700 kg/m³ e massa de 60,79 kg permaneceram |
+| Importação V1 | Fixture combinado com offsets independentes abriu com 34 membros, paredes 1,6/1,2 mm, densidade 7.850 kg/m³ e massa 28,5 kg |
+| Download e reabertura | JSON baixado foi lido no disco: schema 2, paredes, densidade, travamento e offsets presentes. O mesmo arquivo foi reaberto na interface |
+| Importação inválida | Parede primária zero foi rejeitada com mensagem; o frame de 34 membros e 28,5 kg permaneceu |
+| Limites e slider | Entrada -2 mm foi limitada a 0,5 mm; Desfazer recuperou o valor anterior. Seta direita no slider secundário mudou 1,2 para 1,3 mm |
+| Travamentos | Dianteiro: 27 membros; traseiro: 30; combinado: 34 |
+| Edição de pontos | Com simetria reativada, Y de B_L alterado para 450 mm produziu Y de B_R = -450 mm e largura de 900 mm |
+| Migração real do localStorage | HTML V1 do commit anterior foi servido em uma rota temporária no mesmo endereço do preview; salvou altura 1.300 mm. Ao navegar para o HTML novo, a altura permaneceu e paredes/densidade foram preenchidas. A chave original foi mantida |
+| HTML compilado | A versão 1.1 executou por HTTP local com renderização 3D e controles físicos |
+| Tela estreita | Viewport 390 × 844: campos e massas acessíveis; largura útil e largura do documento iguais a 375 px, sem transbordamento horizontal. Tamanho restaurado após o teste |
+| Restaurar frame | Retornou à massa inicial de 26,58 kg |
+| Ocultar categoria | Ocultar secundários não alterou a massa total de 26,58 kg |
+| Console | Nenhum erro registrado nas duas abas usadas nos fluxos observados |
 
-## Distribuição
+## Distribuição e limites
 
-- `BajaFrame.html` contém JavaScript e CSS embutidos; não há `<script src>` ou folhas de estilo externas no documento final.
-- Não existem chamadas a serviços de IA, fontes remotas ou APIs de backend no código da aplicação.
-- O HTML estático foi executado por HTTP local sem servidor de desenvolvimento, usando o mesmo arquivo distribuído.
-- O pacote inclui guia inicial, README, este relatório, licenças das bibliotecas embarcadas, três exemplos JSON, código-fonte, testes, scripts de construção e lockfile.
-- O código-fonte é distribuído sem `node_modules`, chaves de API, arquivos `.env` ou materiais originais do usuário.
-- `npm run audit:portable` confere que o HTML distribuído corresponde à compilação atual e que os documentos, licenças, lockfile, testes e exemplos estão presentes.
-- O ZIP foi extraído em uma pasta de auditoria separada. `npm ci` instalou do lockfile sem reutilizar `node_modules`; os **16 testes e a compilação passaram nessa cópia limpa**. O HTML recompilado teve o mesmo SHA-256 da entrega.
-- A integridade do ZIP foi conferida com leitura de todos os membros e teste CRC; nenhum arquivo corrompido foi encontrado.
-- SHA-256 do HTML final: `b2c373c98483b42f4ed37b18d48f6de05ea9c48c32645423802f9aca8a7dddbe`.
+O diretório `release/BajaFrame` foi atualizado. O HTML da entrega e `dist/index.html` têm SHA-256:
 
-## Limitações da auditoria
+`438de7b59cff5cfa10569eb05326c70c5da27082d739e9eab108f448c396d96f`
 
-1. **Abertura por duplo clique:** o navegador de automação bloqueou navegação `file://`. Não foi tentado contornar esse bloqueio. O arquivo é autossuficiente e foi testado via servidor estático local, mas a abertura direta por duplo clique não pôde ser exercitada neste ambiente. A alternativa de execução pelo código-fonte está documentada.
-2. **Outros navegadores e sistemas:** Firefox, Safari, macOS e Linux não foram executados nesta auditoria. A distribuição usa recursos web modernos e oferece instalação do código-fonte para Windows/macOS/Linux, porém compatibilidade real depende do navegador e da GPU.
-3. **Rede desligada:** a independência de recursos externos foi verificada no conteúdo do HTML e no código da aplicação; não foi feito um ensaio com a interface de rede do computador desligada.
-4. **Fabricação e regulamento:** não houve análise estrutural, simulação física, validação de soldas, dobras ou aprovação perante o RATBSB. Cruzamentos visuais não comprovam juntas de fabricação.
-5. **Geometria livre:** o aplicativo preserva as conexões dos pontos definidos, mas não detecta todas as interseções, torções ou formas inadequadas que o usuário pode produzir.
+O README documenta execução pelo HTML ou pelo código-fonte, unidades, fórmulas, intervalos, migração e limitações da estimativa. Para compartilhar, use o diretório atualizado ou compacte seu conteúdo; um ZIP antigo não é atualizado automaticamente.
+
+- A abertura direta por duplo clique não foi testada nesta etapa. A auditoria anterior registrou bloqueio de navegação `file://` pelo navegador de automação; esse bloqueio não foi contornado. Foi exercitado o mesmo HTML via HTTP local.
+- Não houve nova instalação limpa com `npm ci`, nova consulta `npm audit`, teste de ZIP, teste com rede desligada ou execução em outros navegadores/sistemas nesta etapa.
+- A edição por coordenadas e o espelhamento foram exercitados no navegador; o arraste do manipulador 3D não foi repetido nesta etapa. O código do manipulador não foi modificado.
+- As massas são estimativas de tubos uniformes ao longo dos eixos. Não descontam sobreposições, recortes e encaixes, nem incluem soldas, suportes ou correções reais de dobra. Nenhuma análise de resistência ou conformidade regulamentar foi realizada.
 
 ## Como repetir
 
-Dentro de `codigo-fonte` (ou na raiz do projeto de desenvolvimento):
-
 ```text
 npm ci
-npm run check
-npm run package
+npm test
+npm run build
+node scripts/package.mjs
 npm run audit:portable
-npm audit
+npm run preview
 ```
 
-Para a auditoria manual, use os cenários da tabela. A configuração padrão é um exemplo ilustrativo; não é uma recomendação de fabricação.
+Abra o endereço local informado no terminal e repita os cenários da tabela. O código-fonte distribuído inclui as fixtures V1 para repetir os testes de regressão.

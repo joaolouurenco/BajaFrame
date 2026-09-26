@@ -1,4 +1,4 @@
-/** Model coordinates: X forward, Y left, Z up. Millimetres throughout. */
+/** X forward, Y left, Z up. Geometry: mm; area: mm²; volume: mm³; mass: kg. */
 export type Vec3 = [number, number, number];
 export type Bracing = 'rear' | 'front' | 'both';
 export type Category = 'primary' | 'secondary';
@@ -21,11 +21,17 @@ export const PARAMS = {
   floorPosition: { label: 'Travessa I ao longo da base', min: 40, max: 80, step: 1, unit: '%', group: 'bracing' },
   primaryDiameter: { label: 'Diâmetro dos primários', min: 20, max: 50, step: 0.1, unit: 'mm', group: 'tubes' },
   secondaryDiameter: { label: 'Diâmetro dos secundários', min: 15, max: 40, step: 0.1, unit: 'mm', group: 'tubes' },
+  primaryThickness: { label: 'Espessura dos primários', min: 0.5, max: 5, step: 0.1, unit: 'mm', group: 'tubes' },
+  secondaryThickness: { label: 'Espessura dos secundários', min: 0.5, max: 5, step: 0.1, unit: 'mm', group: 'tubes' },
 } as const;
+export const DEFAULT_PRIMARY_THICKNESS = 1.6;
+export const DEFAULT_SECONDARY_THICKNESS = 1.2;
+export const MATERIAL_DENSITY = { min: 1, max: 30000, step: 10, default: 7850 } as const;
 export type ParamKey = keyof typeof PARAMS;
 export type Parameters = Record<ParamKey, number>;
 export interface Project {
-  schemaVersion: 1;
+  schemaVersion: 2;
+  materialDensity: number; // kg/m³; shared by all members
   name: string;
   params: Parameters;
   bracing: Bracing;
@@ -33,12 +39,19 @@ export interface Project {
   offsets: Record<string, Vec3>;
 }
 export interface FramePoint { id: string; position: Vec3; editable: boolean; description: string }
-export interface Member { id: string; label: string; category: Category; nodes: string[]; diameter: number; length: number }
+export interface Member {
+  id: string; label: string; category: Category; nodes: string[];
+  outerDiameter: number; wallThickness: number; length: number; innerDiameter: number; // mm
+  sectionArea: number; // mm²
+  volume: number; // mm³
+  estimatedMass: number; // kg
+}
 export interface Frame {
   points: Record<string, FramePoint>;
   members: Member[];
   bounds: { min: Vec3; max: Vec3; size: Vec3; center: Vec3 };
   totalLength: number;
+  totalMass: number; primaryMass: number; secondaryMass: number; // kg
   warnings: string[];
 }
 export const POINT_NAMES: Record<string, string> = {
@@ -50,12 +63,44 @@ export const POINT_NAMES: Record<string, string> = {
 };
 export function initialProject(): Project {
   return {
-    schemaVersion: 1, name: 'Frame de estudo 01', symmetry: true, bracing: 'rear', offsets: {},
+    schemaVersion: 2, materialDensity: MATERIAL_DENSITY.default,
+    name: 'Frame de estudo 01', symmetry: true, bracing: 'rear', offsets: {},
     params: { baseWidth: 660, topWidth: 760, simWidth: 740, frontWidth: 440,
       rrhHeight: 1180, rrhAngle: 10, simHeight: 420, roofLength: 860,
       cockpitLength: 1120, noseLength: 300, rearLength: 520, rearHeight: 580,
-      floorPosition: 64, primaryDiameter: 31.8, secondaryDiameter: 25.4 },
+      floorPosition: 64, primaryDiameter: 31.8, secondaryDiameter: 25.4,
+      primaryThickness: DEFAULT_PRIMARY_THICKNESS, secondaryThickness: DEFAULT_SECONDARY_THICKNESS },
   };
+}
+
+/** Circular hollow section. All dimensional arguments are in mm. */
+export function innerDiameter(outerDiameter: number, wallThickness: number): number {
+  if (!Number.isFinite(outerDiameter) || !Number.isFinite(wallThickness) ||
+      outerDiameter <= 0 || wallThickness <= 0 || 2 * wallThickness >= outerDiameter) {
+    throw new Error('Seção tubular inválida: a parede deve ser positiva e menor que metade do diâmetro externo.');
+  }
+  return outerDiameter - 2 * wallThickness;
+}
+export function tubeSectionArea(outerDiameter: number, wallThickness: number): number {
+  const d = innerDiameter(outerDiameter, wallThickness);
+  return Math.PI / 4 * (outerDiameter ** 2 - d ** 2);
+}
+export function tubeVolume(outerDiameter: number, wallThickness: number, length: number): number {
+  if (!Number.isFinite(length) || length < 0) throw new Error('Comprimento de tubo inválido.');
+  return tubeSectionArea(outerDiameter, wallThickness) * length;
+}
+export function tubeMass(outerDiameter: number, wallThickness: number, length: number, density: number): number {
+  if (!Number.isFinite(density) || density <= 0) throw new Error('Densidade inválida.');
+  return tubeVolume(outerDiameter, wallThickness, length) * 1e-9 * density;
+}
+/** Shared validation at the UI, JSON and derived-model boundaries. */
+export function validatePhysicalProperties(project: Pick<Project, 'params' | 'materialDensity'>): void {
+  const p = project.params;
+  innerDiameter(p.primaryDiameter, p.primaryThickness);
+  innerDiameter(p.secondaryDiameter, p.secondaryThickness);
+  if (!Number.isFinite(project.materialDensity) || project.materialDensity < MATERIAL_DENSITY.min || project.materialDensity > MATERIAL_DENSITY.max) {
+    throw new Error(`Densidade inválida: use de ${MATERIAL_DENSITY.min} a ${MATERIAL_DENSITY.max} kg/m³.`);
+  }
 }
 export const add = (a: Vec3, b: Vec3): Vec3 => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
 export const lerp = (a: Vec3, b: Vec3, t: number): Vec3 => a.map((v, i) => v + (b[i] - v) * t) as Vec3;
@@ -77,6 +122,7 @@ export function baseAnchors(p: Parameters): Record<string, Vec3> {
 }
 
 export function computeFrame(project: Project): Frame {
+  validatePhysicalProperties(project);
   const p = project.params;
   const base = baseAnchors(p);
   const points: Record<string, FramePoint> = {};
@@ -104,9 +150,14 @@ export function computeFrame(project: Project): Frame {
   }
   const members: Member[] = [];
   const member = (id: string, label: string, category: Category, nodes: string[]) => {
-    members.push({ id, label, category, nodes,
-      diameter: category === 'primary' ? p.primaryDiameter : p.secondaryDiameter,
-      length: nodes.slice(1).reduce((sum, name, i) => sum + distance(pos(nodes[i]), pos(name)), 0) });
+    const outerDiameter = category === 'primary' ? p.primaryDiameter : p.secondaryDiameter;
+    const wallThickness = category === 'primary' ? p.primaryThickness : p.secondaryThickness;
+    const length = nodes.slice(1).reduce((sum, name, i) => sum + distance(pos(nodes[i]), pos(name)), 0);
+    members.push({ id, label, category, nodes, outerDiameter, wallThickness, length,
+      innerDiameter: innerDiameter(outerDiameter, wallThickness),
+      sectionArea: tubeSectionArea(outerDiameter, wallThickness),
+      volume: tubeVolume(outerDiameter, wallThickness, length),
+      estimatedMass: tubeMass(outerDiameter, wallThickness, length, project.materialDensity) });
   };
   for (const side of ['L', 'R']) {
     member(`RRH_${side}`, 'Arco traseiro', 'primary', ['A', 'S', 'H', 'B'].map(n => `${n}_${side}`));
@@ -151,8 +202,11 @@ export function computeFrame(project: Project): Frame {
   if (Object.values(points).some(n => !n.position.every(Number.isFinite))) warnings.push('Há coordenadas inválidas. Restaure a configuração.');
   if (['L', 'R'].some(s => pos(`C_${s}`)[0] >= pos(`D_${s}`)[0])) warnings.push('A parte superior da dianteira ultrapassa a lateral. Confira a forma do frame.');
   if (Object.values(project.offsets).some(v => v.some(n => Math.abs(n) > 0))) warnings.push('Ajustes locais ativos: as medidas dos controles descrevem a base, antes dos deslocamentos dos pontos.');
+  const primaryMass = members.filter(m => m.category === 'primary').reduce((sum, m) => sum + m.estimatedMass, 0);
+  const secondaryMass = members.filter(m => m.category === 'secondary').reduce((sum, m) => sum + m.estimatedMass, 0);
   return { points, members, bounds: { min, max, size: max.map((v, i) => v - min[i]) as Vec3, center: lerp(min, max, .5) },
-    totalLength: members.reduce((sum, m) => sum + m.length, 0), warnings };
+    totalLength: members.reduce((sum, m) => sum + m.length, 0),
+    totalMass: primaryMass + secondaryMass, primaryMass, secondaryMass, warnings };
 }
 
 export function movePoint(project: Project, id: string, target: Vec3): Project {
@@ -175,16 +229,21 @@ export function setSymmetry(project: Project, symmetry: boolean): Project {
 export function parseProject(input: unknown): Project {
   if (!input || typeof input !== 'object') throw new Error('Arquivo de projeto inválido.');
   const v = input as Record<string, unknown>;
-  if (v.schemaVersion !== 1) throw new Error('Versão de projeto não suportada. Use um arquivo BajaFrame versão 1.');
+  if (v.schemaVersion !== 1 && v.schemaVersion !== 2) throw new Error('Versão de projeto não suportada. Use um arquivo BajaFrame versão 1 ou 2.');
   if (!['rear', 'front', 'both'].includes(v.bracing as string) || typeof v.symmetry !== 'boolean') throw new Error('Configuração de travamento ou simetria inválida.');
   if (!v.params || typeof v.params !== 'object') throw new Error('Parâmetros ausentes.');
   const raw = v.params as Record<string, unknown>;
   const params = {} as Parameters;
   for (const key of Object.keys(PARAMS) as ParamKey[]) {
-    const n = raw[key], def = PARAMS[key];
+    const n = v.schemaVersion === 1 && key === 'primaryThickness' ? DEFAULT_PRIMARY_THICKNESS
+      : v.schemaVersion === 1 && key === 'secondaryThickness' ? DEFAULT_SECONDARY_THICKNESS : raw[key];
+    const def = PARAMS[key];
     if (typeof n !== 'number' || !Number.isFinite(n) || n < def.min || n > def.max) throw new Error(`Parâmetro inválido: ${def.label}.`);
     params[key] = n;
   }
+  const materialDensity = v.schemaVersion === 1 ? MATERIAL_DENSITY.default : v.materialDensity;
+  if (typeof materialDensity !== 'number') throw new Error('Densidade ausente ou inválida.');
+  validatePhysicalProperties({ params, materialDensity });
   if (!v.offsets || typeof v.offsets !== 'object' || Array.isArray(v.offsets)) throw new Error('Ajustes de pontos inválidos.');
   const offsets: Record<string, Vec3> = {};
   for (const [key, val] of Object.entries(v.offsets)) {
@@ -192,7 +251,7 @@ export function parseProject(input: unknown): Project {
     offsets[key] = [...val] as Vec3;
   }
   if (typeof v.name !== 'string' || !v.name.trim() || v.name.length > 80) throw new Error('Nome de projeto inválido.');
-  const project: Project = { schemaVersion: 1, name: v.name.trim(), params, bracing: v.bracing as Bracing, symmetry: v.symmetry, offsets };
+  const project: Project = { schemaVersion: 2, materialDensity, name: v.name.trim(), params, bracing: v.bracing as Bracing, symmetry: v.symmetry, offsets };
   return project.symmetry ? setSymmetry(project, true) : project;
 }
 

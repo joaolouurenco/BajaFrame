@@ -1,0 +1,2099 @@
+[
+  {
+    "project": {
+      "schemaVersion": 1,
+      "name": "Frame de estudo 01",
+      "symmetry": false,
+      "bracing": "rear",
+      "offsets": {
+        "A_R": [
+          0,
+          0,
+          0
+        ],
+        "S_R": [
+          0,
+          0,
+          0
+        ],
+        "B_R": [
+          0,
+          0,
+          0
+        ],
+        "C_R": [
+          0,
+          0,
+          0
+        ],
+        "D_R": [
+          0,
+          0,
+          0
+        ],
+        "F_R": [
+          54.1,
+          -50,
+          30
+        ],
+        "R_R": [
+          0,
+          0,
+          0
+        ],
+        "B_L": [
+          108.1,
+          40,
+          70
+        ]
+      },
+      "params": {
+        "baseWidth": 660,
+        "topWidth": 760,
+        "simWidth": 740,
+        "frontWidth": 440,
+        "rrhHeight": 1180,
+        "rrhAngle": 10,
+        "simHeight": 420,
+        "roofLength": 860,
+        "cockpitLength": 1120,
+        "noseLength": 300,
+        "rearLength": 520,
+        "rearHeight": 580,
+        "floorPosition": 64,
+        "primaryDiameter": 31.8,
+        "secondaryDiameter": 25.4
+      }
+    },
+    "geometry": {
+      "points": {
+        "A_L": {
+          "id": "A_L",
+          "position": [
+            0,
+            330,
+            0
+          ],
+          "editable": true,
+          "description": "Base do arco traseiro"
+        },
+        "A_R": {
+          "id": "A_R",
+          "position": [
+            0,
+            -330,
+            0
+          ],
+          "editable": true,
+          "description": "Base do arco traseiro"
+        },
+        "S_L": {
+          "id": "S_L",
+          "position": [
+            -74.05733189755529,
+            370,
+            420
+          ],
+          "editable": true,
+          "description": "União da lateral ao arco"
+        },
+        "S_R": {
+          "id": "S_R",
+          "position": [
+            -74.05733189755529,
+            -370,
+            420
+          ],
+          "editable": true,
+          "description": "União da lateral ao arco"
+        },
+        "B_L": {
+          "id": "B_L",
+          "position": [
+            -99.96583723598869,
+            420,
+            1250
+          ],
+          "editable": true,
+          "description": "Topo do arco traseiro"
+        },
+        "B_R": {
+          "id": "B_R",
+          "position": [
+            -208.06583723598868,
+            -380,
+            1180
+          ],
+          "editable": true,
+          "description": "Topo do arco traseiro"
+        },
+        "C_L": {
+          "id": "C_L",
+          "position": [
+            651.9341627640113,
+            380,
+            1180
+          ],
+          "editable": true,
+          "description": "Encontro do teto com a dianteira"
+        },
+        "C_R": {
+          "id": "C_R",
+          "position": [
+            651.9341627640113,
+            -380,
+            1180
+          ],
+          "editable": true,
+          "description": "Encontro do teto com a dianteira"
+        },
+        "D_L": {
+          "id": "D_L",
+          "position": [
+            1045.9426681024447,
+            370,
+            420
+          ],
+          "editable": true,
+          "description": "Extremidade da lateral"
+        },
+        "D_R": {
+          "id": "D_R",
+          "position": [
+            1045.9426681024447,
+            -370,
+            420
+          ],
+          "editable": true,
+          "description": "Extremidade da lateral"
+        },
+        "F_L": {
+          "id": "F_L",
+          "position": [
+            1345.9426681024447,
+            220,
+            0
+          ],
+          "editable": true,
+          "description": "Extremidade do bico"
+        },
+        "F_R": {
+          "id": "F_R",
+          "position": [
+            1400.0426681024446,
+            -270,
+            30
+          ],
+          "editable": true,
+          "description": "Extremidade do bico"
+        },
+        "R_L": {
+          "id": "R_L",
+          "position": [
+            -728.0658372359887,
+            330,
+            580
+          ],
+          "editable": true,
+          "description": "Vértice do travamento traseiro"
+        },
+        "R_R": {
+          "id": "R_R",
+          "position": [
+            -728.0658372359887,
+            -330,
+            580
+          ],
+          "editable": true,
+          "description": "Vértice do travamento traseiro"
+        },
+        "H_L": {
+          "id": "H_L",
+          "position": [
+            -85.97524435323464,
+            393,
+            801.8
+          ],
+          "editable": false,
+          "description": "Travessa do arco"
+        },
+        "I_L": {
+          "id": "I_L",
+          "position": [
+            861.4033075855647,
+            259.6,
+            0
+          ],
+          "editable": false,
+          "description": "Travessa intermediária da base"
+        },
+        "U_L": {
+          "id": "U_L",
+          "position": [
+            516.8419845513388,
+            287.76,
+            0
+          ],
+          "editable": false,
+          "description": "Travessa sob o assento"
+        },
+        "V_L": {
+          "id": "V_L",
+          "position": [
+            275.6490584273807,
+            307.472,
+            0
+          ],
+          "editable": false,
+          "description": "Travessa antissubmarina"
+        },
+        "H_R": {
+          "id": "H_R",
+          "position": [
+            -135.70124435323464,
+            -374.6,
+            769.6
+          ],
+          "editable": false,
+          "description": "Travessa do arco"
+        },
+        "I_R": {
+          "id": "I_R",
+          "position": [
+            896.0273075855646,
+            -291.6,
+            19.2
+          ],
+          "editable": false,
+          "description": "Travessa intermediária da base"
+        },
+        "U_R": {
+          "id": "U_R",
+          "position": [
+            537.6163845513387,
+            -306.96000000000004,
+            11.52
+          ],
+          "editable": false,
+          "description": "Travessa sob o assento"
+        },
+        "V_R": {
+          "id": "V_R",
+          "position": [
+            286.7287384273807,
+            -317.712,
+            6.144
+          ],
+          "editable": false,
+          "description": "Travessa antissubmarina"
+        }
+      },
+      "bounds": {
+        "min": [
+          -728.0658372359887,
+          -380,
+          0
+        ],
+        "max": [
+          1400.0426681024446,
+          420,
+          1250
+        ],
+        "size": [
+          2128.108505338433,
+          800,
+          1250
+        ],
+        "center": [
+          335.98841543322783,
+          20,
+          625
+        ]
+      },
+      "totalLength": 28439.26937327589,
+      "members": [
+        {
+          "id": "RRH_L",
+          "label": "Arco traseiro",
+          "category": "primary",
+          "nodes": [
+            "A_L",
+            "S_L",
+            "H_L",
+            "B_L"
+          ],
+          "diameter": 31.8,
+          "length": 1260.2590924703889
+        },
+        {
+          "id": "RHO_FBM_L",
+          "label": "Teto e membro dianteiro superior",
+          "category": "primary",
+          "nodes": [
+            "B_L",
+            "C_L",
+            "D_L"
+          ],
+          "diameter": 31.8,
+          "length": 1612.330759147534
+        },
+        {
+          "id": "FBMLOW_L",
+          "label": "Membro dianteiro inferior",
+          "category": "primary",
+          "nodes": [
+            "D_L",
+            "F_L"
+          ],
+          "diameter": 31.8,
+          "length": 537.4941860150675
+        },
+        {
+          "id": "LFS_L",
+          "label": "Longarina inferior",
+          "category": "primary",
+          "nodes": [
+            "A_L",
+            "V_L",
+            "U_L",
+            "I_L",
+            "F_L"
+          ],
+          "diameter": 31.8,
+          "length": 1350.4301780613196
+        },
+        {
+          "id": "SIM_L",
+          "label": "Proteção lateral",
+          "category": "secondary",
+          "nodes": [
+            "S_L",
+            "D_L"
+          ],
+          "diameter": 25.4,
+          "length": 1120
+        },
+        {
+          "id": "FABUP_L",
+          "label": "Travamento traseiro",
+          "category": "secondary",
+          "nodes": [
+            "B_L",
+            "R_L"
+          ],
+          "diameter": 25.4,
+          "length": 922.772783517156
+        },
+        {
+          "id": "FABMID_L",
+          "label": "Travamento traseiro",
+          "category": "secondary",
+          "nodes": [
+            "S_L",
+            "R_L"
+          ],
+          "diameter": 25.4,
+          "length": 674.4828574952901
+        },
+        {
+          "id": "FABLOW_L",
+          "label": "Travamento traseiro",
+          "category": "secondary",
+          "nodes": [
+            "A_L",
+            "R_L"
+          ],
+          "diameter": 25.4,
+          "length": 930.849001369256
+        },
+        {
+          "id": "RRH_R",
+          "label": "Arco traseiro",
+          "category": "primary",
+          "nodes": [
+            "A_R",
+            "S_R",
+            "H_R",
+            "B_R"
+          ],
+          "diameter": 31.8,
+          "length": 1200.1399063174888
+        },
+        {
+          "id": "RHO_FBM_R",
+          "label": "Teto e membro dianteiro superior",
+          "category": "primary",
+          "nodes": [
+            "B_R",
+            "C_R",
+            "D_R"
+          ],
+          "diameter": 31.8,
+          "length": 1716.120728798822
+        },
+        {
+          "id": "FBMLOW_R",
+          "label": "Membro dianteiro inferior",
+          "category": "primary",
+          "nodes": [
+            "D_R",
+            "F_R"
+          ],
+          "diameter": 31.8,
+          "length": 536.1779648586838
+        },
+        {
+          "id": "LFS_R",
+          "label": "Longarina inferior",
+          "category": "primary",
+          "nodes": [
+            "A_R",
+            "V_R",
+            "U_R",
+            "I_R",
+            "F_R"
+          ],
+          "diameter": 31.8,
+          "length": 1401.648840654253
+        },
+        {
+          "id": "SIM_R",
+          "label": "Proteção lateral",
+          "category": "secondary",
+          "nodes": [
+            "S_R",
+            "D_R"
+          ],
+          "diameter": 25.4,
+          "length": 1120
+        },
+        {
+          "id": "FABUP_R",
+          "label": "Travamento traseiro",
+          "category": "secondary",
+          "nodes": [
+            "B_R",
+            "R_R"
+          ],
+          "diameter": 25.4,
+          "length": 795.550124127952
+        },
+        {
+          "id": "FABMID_R",
+          "label": "Travamento traseiro",
+          "category": "secondary",
+          "nodes": [
+            "S_R",
+            "R_R"
+          ],
+          "diameter": 25.4,
+          "length": 674.4828574952901
+        },
+        {
+          "id": "FABLOW_R",
+          "label": "Travamento traseiro",
+          "category": "secondary",
+          "nodes": [
+            "A_R",
+            "R_R"
+          ],
+          "diameter": 25.4,
+          "length": 930.849001369256
+        },
+        {
+          "id": "ALC",
+          "label": "Travessa da base traseira",
+          "category": "primary",
+          "nodes": [
+            "A_L",
+            "A_R"
+          ],
+          "diameter": 31.8,
+          "length": 660
+        },
+        {
+          "id": "BLC",
+          "label": "Travessa superior traseira",
+          "category": "primary",
+          "nodes": [
+            "B_L",
+            "B_R"
+          ],
+          "diameter": 31.8,
+          "length": 810.2997038133483
+        },
+        {
+          "id": "CLC",
+          "label": "Travessa superior dianteira",
+          "category": "primary",
+          "nodes": [
+            "C_L",
+            "C_R"
+          ],
+          "diameter": 31.8,
+          "length": 760
+        },
+        {
+          "id": "DLC",
+          "label": "Travessa das laterais",
+          "category": "primary",
+          "nodes": [
+            "D_L",
+            "D_R"
+          ],
+          "diameter": 31.8,
+          "length": 740
+        },
+        {
+          "id": "FLC",
+          "label": "Travessa do bico",
+          "category": "primary",
+          "nodes": [
+            "F_L",
+            "F_R"
+          ],
+          "diameter": 31.8,
+          "length": 493.88947144072625
+        },
+        {
+          "id": "SHC",
+          "label": "Travessa do arco",
+          "category": "primary",
+          "nodes": [
+            "H_L",
+            "H_R"
+          ],
+          "diameter": 31.8,
+          "length": 769.8826372090748
+        },
+        {
+          "id": "ILC",
+          "label": "Travessa intermediária",
+          "category": "secondary",
+          "nodes": [
+            "I_L",
+            "I_R"
+          ],
+          "diameter": 25.4,
+          "length": 552.6200334551762
+        },
+        {
+          "id": "USM",
+          "label": "Travessa sob o assento",
+          "category": "secondary",
+          "nodes": [
+            "U_L",
+            "U_R"
+          ],
+          "diameter": 25.4,
+          "length": 595.1942241784274
+        },
+        {
+          "id": "ASB",
+          "label": "Travessa antissubmarina",
+          "category": "secondary",
+          "nodes": [
+            "V_L",
+            "V_R"
+          ],
+          "diameter": 25.4,
+          "length": 625.3123554679712
+        },
+        {
+          "id": "RLC",
+          "label": "Travessa traseira",
+          "category": "secondary",
+          "nodes": [
+            "R_L",
+            "R_R"
+          ],
+          "diameter": 25.4,
+          "length": 660
+        },
+        {
+          "id": "LDB_1",
+          "label": "Diagonal do arco traseiro",
+          "category": "secondary",
+          "nodes": [
+            "A_L",
+            "B_R"
+          ],
+          "diameter": 25.4,
+          "length": 1392.7639400216797
+        },
+        {
+          "id": "LDB_2",
+          "label": "Diagonal do arco traseiro",
+          "category": "secondary",
+          "nodes": [
+            "A_R",
+            "B_L"
+          ],
+          "diameter": 25.4,
+          "length": 1461.161581966311
+        },
+        {
+          "id": "LFDB_1",
+          "label": "Diagonal do assoalho",
+          "category": "secondary",
+          "nodes": [
+            "A_L",
+            "I_R"
+          ],
+          "diameter": 25.4,
+          "length": 1090.697087159875
+        },
+        {
+          "id": "LFDB_2",
+          "label": "Diagonal do assoalho",
+          "category": "secondary",
+          "nodes": [
+            "A_R",
+            "I_L"
+          ],
+          "diameter": 25.4,
+          "length": 1043.8600568655509
+        }
+      ]
+    }
+  },
+  {
+    "project": {
+      "schemaVersion": 1,
+      "name": "Frame de estudo 01",
+      "symmetry": false,
+      "bracing": "front",
+      "offsets": {
+        "A_R": [
+          0,
+          0,
+          0
+        ],
+        "S_R": [
+          0,
+          0,
+          0
+        ],
+        "B_R": [
+          0,
+          0,
+          0
+        ],
+        "C_R": [
+          0,
+          0,
+          0
+        ],
+        "D_R": [
+          0,
+          0,
+          0
+        ],
+        "F_R": [
+          54.1,
+          -50,
+          30
+        ],
+        "R_R": [
+          0,
+          0,
+          0
+        ],
+        "B_L": [
+          108.1,
+          40,
+          70
+        ]
+      },
+      "params": {
+        "baseWidth": 660,
+        "topWidth": 760,
+        "simWidth": 740,
+        "frontWidth": 440,
+        "rrhHeight": 1180,
+        "rrhAngle": 10,
+        "simHeight": 420,
+        "roofLength": 860,
+        "cockpitLength": 1120,
+        "noseLength": 300,
+        "rearLength": 520,
+        "rearHeight": 580,
+        "floorPosition": 64,
+        "primaryDiameter": 31.8,
+        "secondaryDiameter": 25.4
+      }
+    },
+    "geometry": {
+      "points": {
+        "A_L": {
+          "id": "A_L",
+          "position": [
+            0,
+            330,
+            0
+          ],
+          "editable": true,
+          "description": "Base do arco traseiro"
+        },
+        "A_R": {
+          "id": "A_R",
+          "position": [
+            0,
+            -330,
+            0
+          ],
+          "editable": true,
+          "description": "Base do arco traseiro"
+        },
+        "S_L": {
+          "id": "S_L",
+          "position": [
+            -74.05733189755529,
+            370,
+            420
+          ],
+          "editable": true,
+          "description": "União da lateral ao arco"
+        },
+        "S_R": {
+          "id": "S_R",
+          "position": [
+            -74.05733189755529,
+            -370,
+            420
+          ],
+          "editable": true,
+          "description": "União da lateral ao arco"
+        },
+        "B_L": {
+          "id": "B_L",
+          "position": [
+            -99.96583723598869,
+            420,
+            1250
+          ],
+          "editable": true,
+          "description": "Topo do arco traseiro"
+        },
+        "B_R": {
+          "id": "B_R",
+          "position": [
+            -208.06583723598868,
+            -380,
+            1180
+          ],
+          "editable": true,
+          "description": "Topo do arco traseiro"
+        },
+        "C_L": {
+          "id": "C_L",
+          "position": [
+            651.9341627640113,
+            380,
+            1180
+          ],
+          "editable": true,
+          "description": "Encontro do teto com a dianteira"
+        },
+        "C_R": {
+          "id": "C_R",
+          "position": [
+            651.9341627640113,
+            -380,
+            1180
+          ],
+          "editable": true,
+          "description": "Encontro do teto com a dianteira"
+        },
+        "D_L": {
+          "id": "D_L",
+          "position": [
+            1045.9426681024447,
+            370,
+            420
+          ],
+          "editable": true,
+          "description": "Extremidade da lateral"
+        },
+        "D_R": {
+          "id": "D_R",
+          "position": [
+            1045.9426681024447,
+            -370,
+            420
+          ],
+          "editable": true,
+          "description": "Extremidade da lateral"
+        },
+        "F_L": {
+          "id": "F_L",
+          "position": [
+            1345.9426681024447,
+            220,
+            0
+          ],
+          "editable": true,
+          "description": "Extremidade do bico"
+        },
+        "F_R": {
+          "id": "F_R",
+          "position": [
+            1400.0426681024446,
+            -270,
+            30
+          ],
+          "editable": true,
+          "description": "Extremidade do bico"
+        },
+        "H_L": {
+          "id": "H_L",
+          "position": [
+            -85.97524435323464,
+            393,
+            801.8
+          ],
+          "editable": false,
+          "description": "Travessa do arco"
+        },
+        "I_L": {
+          "id": "I_L",
+          "position": [
+            861.4033075855647,
+            259.6,
+            0
+          ],
+          "editable": false,
+          "description": "Travessa intermediária da base"
+        },
+        "U_L": {
+          "id": "U_L",
+          "position": [
+            516.8419845513388,
+            287.76,
+            0
+          ],
+          "editable": false,
+          "description": "Travessa sob o assento"
+        },
+        "V_L": {
+          "id": "V_L",
+          "position": [
+            275.6490584273807,
+            307.472,
+            0
+          ],
+          "editable": false,
+          "description": "Travessa antissubmarina"
+        },
+        "P_L": {
+          "id": "P_L",
+          "position": [
+            620.3426681024447,
+            370,
+            420
+          ],
+          "editable": false,
+          "description": "Apoio dianteiro na lateral"
+        },
+        "Q_L": {
+          "id": "Q_L",
+          "position": [
+            711.0354385647763,
+            378.5,
+            1066
+          ],
+          "editable": false,
+          "description": "Apoio dianteiro no membro superior"
+        },
+        "J_L": {
+          "id": "J_L",
+          "position": [
+            699.8901874132713,
+            272.8,
+            0
+          ],
+          "editable": false,
+          "description": "Apoio dianteiro na base"
+        },
+        "H_R": {
+          "id": "H_R",
+          "position": [
+            -135.70124435323464,
+            -374.6,
+            769.6
+          ],
+          "editable": false,
+          "description": "Travessa do arco"
+        },
+        "I_R": {
+          "id": "I_R",
+          "position": [
+            896.0273075855646,
+            -291.6,
+            19.2
+          ],
+          "editable": false,
+          "description": "Travessa intermediária da base"
+        },
+        "U_R": {
+          "id": "U_R",
+          "position": [
+            537.6163845513387,
+            -306.96000000000004,
+            11.52
+          ],
+          "editable": false,
+          "description": "Travessa sob o assento"
+        },
+        "V_R": {
+          "id": "V_R",
+          "position": [
+            286.7287384273807,
+            -317.712,
+            6.144
+          ],
+          "editable": false,
+          "description": "Travessa antissubmarina"
+        },
+        "P_R": {
+          "id": "P_R",
+          "position": [
+            620.3426681024447,
+            -370,
+            420
+          ],
+          "editable": false,
+          "description": "Apoio dianteiro na lateral"
+        },
+        "Q_R": {
+          "id": "Q_R",
+          "position": [
+            711.0354385647763,
+            -378.5,
+            1066
+          ],
+          "editable": false,
+          "description": "Apoio dianteiro no membro superior"
+        },
+        "J_R": {
+          "id": "J_R",
+          "position": [
+            728.0221874132712,
+            -298.8,
+            15.600000000000001
+          ],
+          "editable": false,
+          "description": "Apoio dianteiro na base"
+        }
+      },
+      "bounds": {
+        "min": [
+          -208.06583723598868,
+          -380,
+          0
+        ],
+        "max": [
+          1400.0426681024446,
+          420,
+          1250
+        ],
+        "size": [
+          1608.1085053384334,
+          800,
+          1250
+        ],
+        "center": [
+          595.988415433228,
+          20,
+          625
+        ]
+      },
+      "totalLength": 25017.946314830573,
+      "members": [
+        {
+          "id": "RRH_L",
+          "label": "Arco traseiro",
+          "category": "primary",
+          "nodes": [
+            "A_L",
+            "S_L",
+            "H_L",
+            "B_L"
+          ],
+          "diameter": 31.8,
+          "length": 1260.2590924703889
+        },
+        {
+          "id": "RHO_FBM_L",
+          "label": "Teto e membro dianteiro superior",
+          "category": "primary",
+          "nodes": [
+            "B_L",
+            "C_L",
+            "Q_L",
+            "D_L"
+          ],
+          "diameter": 31.8,
+          "length": 1612.330759147534
+        },
+        {
+          "id": "FBMLOW_L",
+          "label": "Membro dianteiro inferior",
+          "category": "primary",
+          "nodes": [
+            "D_L",
+            "F_L"
+          ],
+          "diameter": 31.8,
+          "length": 537.4941860150675
+        },
+        {
+          "id": "LFS_L",
+          "label": "Longarina inferior",
+          "category": "primary",
+          "nodes": [
+            "A_L",
+            "V_L",
+            "U_L",
+            "J_L",
+            "I_L",
+            "F_L"
+          ],
+          "diameter": 31.8,
+          "length": 1350.4301780613196
+        },
+        {
+          "id": "SIM_L",
+          "label": "Proteção lateral",
+          "category": "secondary",
+          "nodes": [
+            "S_L",
+            "P_L",
+            "D_L"
+          ],
+          "diameter": 25.4,
+          "length": 1120
+        },
+        {
+          "id": "FAB_FRONT_UP_L",
+          "label": "Travamento dianteiro superior",
+          "category": "secondary",
+          "nodes": [
+            "Q_L",
+            "P_L"
+          ],
+          "diameter": 25.4,
+          "length": 652.3905491453207
+        },
+        {
+          "id": "FAB_FRONT_LOW_L",
+          "label": "Travamento dianteiro inferior",
+          "category": "secondary",
+          "nodes": [
+            "P_L",
+            "J_L"
+          ],
+          "diameter": 25.4,
+          "length": 438.37842993070075
+        },
+        {
+          "id": "RRH_R",
+          "label": "Arco traseiro",
+          "category": "primary",
+          "nodes": [
+            "A_R",
+            "S_R",
+            "H_R",
+            "B_R"
+          ],
+          "diameter": 31.8,
+          "length": 1200.1399063174888
+        },
+        {
+          "id": "RHO_FBM_R",
+          "label": "Teto e membro dianteiro superior",
+          "category": "primary",
+          "nodes": [
+            "B_R",
+            "C_R",
+            "Q_R",
+            "D_R"
+          ],
+          "diameter": 31.8,
+          "length": 1716.120728798822
+        },
+        {
+          "id": "FBMLOW_R",
+          "label": "Membro dianteiro inferior",
+          "category": "primary",
+          "nodes": [
+            "D_R",
+            "F_R"
+          ],
+          "diameter": 31.8,
+          "length": 536.1779648586838
+        },
+        {
+          "id": "LFS_R",
+          "label": "Longarina inferior",
+          "category": "primary",
+          "nodes": [
+            "A_R",
+            "V_R",
+            "U_R",
+            "J_R",
+            "I_R",
+            "F_R"
+          ],
+          "diameter": 31.8,
+          "length": 1401.648840654253
+        },
+        {
+          "id": "SIM_R",
+          "label": "Proteção lateral",
+          "category": "secondary",
+          "nodes": [
+            "S_R",
+            "P_R",
+            "D_R"
+          ],
+          "diameter": 25.4,
+          "length": 1120
+        },
+        {
+          "id": "FAB_FRONT_UP_R",
+          "label": "Travamento dianteiro superior",
+          "category": "secondary",
+          "nodes": [
+            "Q_R",
+            "P_R"
+          ],
+          "diameter": 25.4,
+          "length": 652.3905491453207
+        },
+        {
+          "id": "FAB_FRONT_LOW_R",
+          "label": "Travamento dianteiro inferior",
+          "category": "secondary",
+          "nodes": [
+            "P_R",
+            "J_R"
+          ],
+          "diameter": 25.4,
+          "length": 424.5040387075377
+        },
+        {
+          "id": "ALC",
+          "label": "Travessa da base traseira",
+          "category": "primary",
+          "nodes": [
+            "A_L",
+            "A_R"
+          ],
+          "diameter": 31.8,
+          "length": 660
+        },
+        {
+          "id": "BLC",
+          "label": "Travessa superior traseira",
+          "category": "primary",
+          "nodes": [
+            "B_L",
+            "B_R"
+          ],
+          "diameter": 31.8,
+          "length": 810.2997038133483
+        },
+        {
+          "id": "CLC",
+          "label": "Travessa superior dianteira",
+          "category": "primary",
+          "nodes": [
+            "C_L",
+            "C_R"
+          ],
+          "diameter": 31.8,
+          "length": 760
+        },
+        {
+          "id": "DLC",
+          "label": "Travessa das laterais",
+          "category": "primary",
+          "nodes": [
+            "D_L",
+            "D_R"
+          ],
+          "diameter": 31.8,
+          "length": 740
+        },
+        {
+          "id": "FLC",
+          "label": "Travessa do bico",
+          "category": "primary",
+          "nodes": [
+            "F_L",
+            "F_R"
+          ],
+          "diameter": 31.8,
+          "length": 493.88947144072625
+        },
+        {
+          "id": "SHC",
+          "label": "Travessa do arco",
+          "category": "primary",
+          "nodes": [
+            "H_L",
+            "H_R"
+          ],
+          "diameter": 31.8,
+          "length": 769.8826372090748
+        },
+        {
+          "id": "ILC",
+          "label": "Travessa intermediária",
+          "category": "secondary",
+          "nodes": [
+            "I_L",
+            "I_R"
+          ],
+          "diameter": 25.4,
+          "length": 552.6200334551762
+        },
+        {
+          "id": "USM",
+          "label": "Travessa sob o assento",
+          "category": "secondary",
+          "nodes": [
+            "U_L",
+            "U_R"
+          ],
+          "diameter": 25.4,
+          "length": 595.1942241784274
+        },
+        {
+          "id": "ASB",
+          "label": "Travessa antissubmarina",
+          "category": "secondary",
+          "nodes": [
+            "V_L",
+            "V_R"
+          ],
+          "diameter": 25.4,
+          "length": 625.3123554679712
+        },
+        {
+          "id": "LDB_1",
+          "label": "Diagonal do arco traseiro",
+          "category": "secondary",
+          "nodes": [
+            "A_L",
+            "B_R"
+          ],
+          "diameter": 25.4,
+          "length": 1392.7639400216797
+        },
+        {
+          "id": "LDB_2",
+          "label": "Diagonal do arco traseiro",
+          "category": "secondary",
+          "nodes": [
+            "A_R",
+            "B_L"
+          ],
+          "diameter": 25.4,
+          "length": 1461.161581966311
+        },
+        {
+          "id": "LFDB_1",
+          "label": "Diagonal do assoalho",
+          "category": "secondary",
+          "nodes": [
+            "A_L",
+            "I_R"
+          ],
+          "diameter": 25.4,
+          "length": 1090.697087159875
+        },
+        {
+          "id": "LFDB_2",
+          "label": "Diagonal do assoalho",
+          "category": "secondary",
+          "nodes": [
+            "A_R",
+            "I_L"
+          ],
+          "diameter": 25.4,
+          "length": 1043.8600568655509
+        }
+      ]
+    }
+  },
+  {
+    "project": {
+      "schemaVersion": 1,
+      "name": "Frame de estudo 01",
+      "symmetry": false,
+      "bracing": "both",
+      "offsets": {
+        "A_R": [
+          0,
+          0,
+          0
+        ],
+        "S_R": [
+          0,
+          0,
+          0
+        ],
+        "B_R": [
+          0,
+          0,
+          0
+        ],
+        "C_R": [
+          0,
+          0,
+          0
+        ],
+        "D_R": [
+          0,
+          0,
+          0
+        ],
+        "F_R": [
+          54.1,
+          -50,
+          30
+        ],
+        "R_R": [
+          0,
+          0,
+          0
+        ],
+        "B_L": [
+          108.1,
+          40,
+          70
+        ]
+      },
+      "params": {
+        "baseWidth": 660,
+        "topWidth": 760,
+        "simWidth": 740,
+        "frontWidth": 440,
+        "rrhHeight": 1180,
+        "rrhAngle": 10,
+        "simHeight": 420,
+        "roofLength": 860,
+        "cockpitLength": 1120,
+        "noseLength": 300,
+        "rearLength": 520,
+        "rearHeight": 580,
+        "floorPosition": 64,
+        "primaryDiameter": 31.8,
+        "secondaryDiameter": 25.4
+      }
+    },
+    "geometry": {
+      "points": {
+        "A_L": {
+          "id": "A_L",
+          "position": [
+            0,
+            330,
+            0
+          ],
+          "editable": true,
+          "description": "Base do arco traseiro"
+        },
+        "A_R": {
+          "id": "A_R",
+          "position": [
+            0,
+            -330,
+            0
+          ],
+          "editable": true,
+          "description": "Base do arco traseiro"
+        },
+        "S_L": {
+          "id": "S_L",
+          "position": [
+            -74.05733189755529,
+            370,
+            420
+          ],
+          "editable": true,
+          "description": "União da lateral ao arco"
+        },
+        "S_R": {
+          "id": "S_R",
+          "position": [
+            -74.05733189755529,
+            -370,
+            420
+          ],
+          "editable": true,
+          "description": "União da lateral ao arco"
+        },
+        "B_L": {
+          "id": "B_L",
+          "position": [
+            -99.96583723598869,
+            420,
+            1250
+          ],
+          "editable": true,
+          "description": "Topo do arco traseiro"
+        },
+        "B_R": {
+          "id": "B_R",
+          "position": [
+            -208.06583723598868,
+            -380,
+            1180
+          ],
+          "editable": true,
+          "description": "Topo do arco traseiro"
+        },
+        "C_L": {
+          "id": "C_L",
+          "position": [
+            651.9341627640113,
+            380,
+            1180
+          ],
+          "editable": true,
+          "description": "Encontro do teto com a dianteira"
+        },
+        "C_R": {
+          "id": "C_R",
+          "position": [
+            651.9341627640113,
+            -380,
+            1180
+          ],
+          "editable": true,
+          "description": "Encontro do teto com a dianteira"
+        },
+        "D_L": {
+          "id": "D_L",
+          "position": [
+            1045.9426681024447,
+            370,
+            420
+          ],
+          "editable": true,
+          "description": "Extremidade da lateral"
+        },
+        "D_R": {
+          "id": "D_R",
+          "position": [
+            1045.9426681024447,
+            -370,
+            420
+          ],
+          "editable": true,
+          "description": "Extremidade da lateral"
+        },
+        "F_L": {
+          "id": "F_L",
+          "position": [
+            1345.9426681024447,
+            220,
+            0
+          ],
+          "editable": true,
+          "description": "Extremidade do bico"
+        },
+        "F_R": {
+          "id": "F_R",
+          "position": [
+            1400.0426681024446,
+            -270,
+            30
+          ],
+          "editable": true,
+          "description": "Extremidade do bico"
+        },
+        "R_L": {
+          "id": "R_L",
+          "position": [
+            -728.0658372359887,
+            330,
+            580
+          ],
+          "editable": true,
+          "description": "Vértice do travamento traseiro"
+        },
+        "R_R": {
+          "id": "R_R",
+          "position": [
+            -728.0658372359887,
+            -330,
+            580
+          ],
+          "editable": true,
+          "description": "Vértice do travamento traseiro"
+        },
+        "H_L": {
+          "id": "H_L",
+          "position": [
+            -85.97524435323464,
+            393,
+            801.8
+          ],
+          "editable": false,
+          "description": "Travessa do arco"
+        },
+        "I_L": {
+          "id": "I_L",
+          "position": [
+            861.4033075855647,
+            259.6,
+            0
+          ],
+          "editable": false,
+          "description": "Travessa intermediária da base"
+        },
+        "U_L": {
+          "id": "U_L",
+          "position": [
+            516.8419845513388,
+            287.76,
+            0
+          ],
+          "editable": false,
+          "description": "Travessa sob o assento"
+        },
+        "V_L": {
+          "id": "V_L",
+          "position": [
+            275.6490584273807,
+            307.472,
+            0
+          ],
+          "editable": false,
+          "description": "Travessa antissubmarina"
+        },
+        "P_L": {
+          "id": "P_L",
+          "position": [
+            620.3426681024447,
+            370,
+            420
+          ],
+          "editable": false,
+          "description": "Apoio dianteiro na lateral"
+        },
+        "Q_L": {
+          "id": "Q_L",
+          "position": [
+            711.0354385647763,
+            378.5,
+            1066
+          ],
+          "editable": false,
+          "description": "Apoio dianteiro no membro superior"
+        },
+        "J_L": {
+          "id": "J_L",
+          "position": [
+            699.8901874132713,
+            272.8,
+            0
+          ],
+          "editable": false,
+          "description": "Apoio dianteiro na base"
+        },
+        "H_R": {
+          "id": "H_R",
+          "position": [
+            -135.70124435323464,
+            -374.6,
+            769.6
+          ],
+          "editable": false,
+          "description": "Travessa do arco"
+        },
+        "I_R": {
+          "id": "I_R",
+          "position": [
+            896.0273075855646,
+            -291.6,
+            19.2
+          ],
+          "editable": false,
+          "description": "Travessa intermediária da base"
+        },
+        "U_R": {
+          "id": "U_R",
+          "position": [
+            537.6163845513387,
+            -306.96000000000004,
+            11.52
+          ],
+          "editable": false,
+          "description": "Travessa sob o assento"
+        },
+        "V_R": {
+          "id": "V_R",
+          "position": [
+            286.7287384273807,
+            -317.712,
+            6.144
+          ],
+          "editable": false,
+          "description": "Travessa antissubmarina"
+        },
+        "P_R": {
+          "id": "P_R",
+          "position": [
+            620.3426681024447,
+            -370,
+            420
+          ],
+          "editable": false,
+          "description": "Apoio dianteiro na lateral"
+        },
+        "Q_R": {
+          "id": "Q_R",
+          "position": [
+            711.0354385647763,
+            -378.5,
+            1066
+          ],
+          "editable": false,
+          "description": "Apoio dianteiro no membro superior"
+        },
+        "J_R": {
+          "id": "J_R",
+          "position": [
+            728.0221874132712,
+            -298.8,
+            15.600000000000001
+          ],
+          "editable": false,
+          "description": "Apoio dianteiro na base"
+        }
+      },
+      "bounds": {
+        "min": [
+          -728.0658372359887,
+          -380,
+          0
+        ],
+        "max": [
+          1400.0426681024446,
+          420,
+          1250
+        ],
+        "size": [
+          2128.108505338433,
+          800,
+          1250
+        ],
+        "center": [
+          335.98841543322783,
+          20,
+          625
+        ]
+      },
+      "totalLength": 30606.932940204773,
+      "members": [
+        {
+          "id": "RRH_L",
+          "label": "Arco traseiro",
+          "category": "primary",
+          "nodes": [
+            "A_L",
+            "S_L",
+            "H_L",
+            "B_L"
+          ],
+          "diameter": 31.8,
+          "length": 1260.2590924703889
+        },
+        {
+          "id": "RHO_FBM_L",
+          "label": "Teto e membro dianteiro superior",
+          "category": "primary",
+          "nodes": [
+            "B_L",
+            "C_L",
+            "Q_L",
+            "D_L"
+          ],
+          "diameter": 31.8,
+          "length": 1612.330759147534
+        },
+        {
+          "id": "FBMLOW_L",
+          "label": "Membro dianteiro inferior",
+          "category": "primary",
+          "nodes": [
+            "D_L",
+            "F_L"
+          ],
+          "diameter": 31.8,
+          "length": 537.4941860150675
+        },
+        {
+          "id": "LFS_L",
+          "label": "Longarina inferior",
+          "category": "primary",
+          "nodes": [
+            "A_L",
+            "V_L",
+            "U_L",
+            "J_L",
+            "I_L",
+            "F_L"
+          ],
+          "diameter": 31.8,
+          "length": 1350.4301780613196
+        },
+        {
+          "id": "SIM_L",
+          "label": "Proteção lateral",
+          "category": "secondary",
+          "nodes": [
+            "S_L",
+            "P_L",
+            "D_L"
+          ],
+          "diameter": 25.4,
+          "length": 1120
+        },
+        {
+          "id": "FABUP_L",
+          "label": "Travamento traseiro",
+          "category": "secondary",
+          "nodes": [
+            "B_L",
+            "R_L"
+          ],
+          "diameter": 25.4,
+          "length": 922.772783517156
+        },
+        {
+          "id": "FABMID_L",
+          "label": "Travamento traseiro",
+          "category": "secondary",
+          "nodes": [
+            "S_L",
+            "R_L"
+          ],
+          "diameter": 25.4,
+          "length": 674.4828574952901
+        },
+        {
+          "id": "FABLOW_L",
+          "label": "Travamento traseiro",
+          "category": "secondary",
+          "nodes": [
+            "A_L",
+            "R_L"
+          ],
+          "diameter": 25.4,
+          "length": 930.849001369256
+        },
+        {
+          "id": "FAB_FRONT_UP_L",
+          "label": "Travamento dianteiro superior",
+          "category": "secondary",
+          "nodes": [
+            "Q_L",
+            "P_L"
+          ],
+          "diameter": 25.4,
+          "length": 652.3905491453207
+        },
+        {
+          "id": "FAB_FRONT_LOW_L",
+          "label": "Travamento dianteiro inferior",
+          "category": "secondary",
+          "nodes": [
+            "P_L",
+            "J_L"
+          ],
+          "diameter": 25.4,
+          "length": 438.37842993070075
+        },
+        {
+          "id": "RRH_R",
+          "label": "Arco traseiro",
+          "category": "primary",
+          "nodes": [
+            "A_R",
+            "S_R",
+            "H_R",
+            "B_R"
+          ],
+          "diameter": 31.8,
+          "length": 1200.1399063174888
+        },
+        {
+          "id": "RHO_FBM_R",
+          "label": "Teto e membro dianteiro superior",
+          "category": "primary",
+          "nodes": [
+            "B_R",
+            "C_R",
+            "Q_R",
+            "D_R"
+          ],
+          "diameter": 31.8,
+          "length": 1716.120728798822
+        },
+        {
+          "id": "FBMLOW_R",
+          "label": "Membro dianteiro inferior",
+          "category": "primary",
+          "nodes": [
+            "D_R",
+            "F_R"
+          ],
+          "diameter": 31.8,
+          "length": 536.1779648586838
+        },
+        {
+          "id": "LFS_R",
+          "label": "Longarina inferior",
+          "category": "primary",
+          "nodes": [
+            "A_R",
+            "V_R",
+            "U_R",
+            "J_R",
+            "I_R",
+            "F_R"
+          ],
+          "diameter": 31.8,
+          "length": 1401.648840654253
+        },
+        {
+          "id": "SIM_R",
+          "label": "Proteção lateral",
+          "category": "secondary",
+          "nodes": [
+            "S_R",
+            "P_R",
+            "D_R"
+          ],
+          "diameter": 25.4,
+          "length": 1120
+        },
+        {
+          "id": "FABUP_R",
+          "label": "Travamento traseiro",
+          "category": "secondary",
+          "nodes": [
+            "B_R",
+            "R_R"
+          ],
+          "diameter": 25.4,
+          "length": 795.550124127952
+        },
+        {
+          "id": "FABMID_R",
+          "label": "Travamento traseiro",
+          "category": "secondary",
+          "nodes": [
+            "S_R",
+            "R_R"
+          ],
+          "diameter": 25.4,
+          "length": 674.4828574952901
+        },
+        {
+          "id": "FABLOW_R",
+          "label": "Travamento traseiro",
+          "category": "secondary",
+          "nodes": [
+            "A_R",
+            "R_R"
+          ],
+          "diameter": 25.4,
+          "length": 930.849001369256
+        },
+        {
+          "id": "FAB_FRONT_UP_R",
+          "label": "Travamento dianteiro superior",
+          "category": "secondary",
+          "nodes": [
+            "Q_R",
+            "P_R"
+          ],
+          "diameter": 25.4,
+          "length": 652.3905491453207
+        },
+        {
+          "id": "FAB_FRONT_LOW_R",
+          "label": "Travamento dianteiro inferior",
+          "category": "secondary",
+          "nodes": [
+            "P_R",
+            "J_R"
+          ],
+          "diameter": 25.4,
+          "length": 424.5040387075377
+        },
+        {
+          "id": "ALC",
+          "label": "Travessa da base traseira",
+          "category": "primary",
+          "nodes": [
+            "A_L",
+            "A_R"
+          ],
+          "diameter": 31.8,
+          "length": 660
+        },
+        {
+          "id": "BLC",
+          "label": "Travessa superior traseira",
+          "category": "primary",
+          "nodes": [
+            "B_L",
+            "B_R"
+          ],
+          "diameter": 31.8,
+          "length": 810.2997038133483
+        },
+        {
+          "id": "CLC",
+          "label": "Travessa superior dianteira",
+          "category": "primary",
+          "nodes": [
+            "C_L",
+            "C_R"
+          ],
+          "diameter": 31.8,
+          "length": 760
+        },
+        {
+          "id": "DLC",
+          "label": "Travessa das laterais",
+          "category": "primary",
+          "nodes": [
+            "D_L",
+            "D_R"
+          ],
+          "diameter": 31.8,
+          "length": 740
+        },
+        {
+          "id": "FLC",
+          "label": "Travessa do bico",
+          "category": "primary",
+          "nodes": [
+            "F_L",
+            "F_R"
+          ],
+          "diameter": 31.8,
+          "length": 493.88947144072625
+        },
+        {
+          "id": "SHC",
+          "label": "Travessa do arco",
+          "category": "primary",
+          "nodes": [
+            "H_L",
+            "H_R"
+          ],
+          "diameter": 31.8,
+          "length": 769.8826372090748
+        },
+        {
+          "id": "ILC",
+          "label": "Travessa intermediária",
+          "category": "secondary",
+          "nodes": [
+            "I_L",
+            "I_R"
+          ],
+          "diameter": 25.4,
+          "length": 552.6200334551762
+        },
+        {
+          "id": "USM",
+          "label": "Travessa sob o assento",
+          "category": "secondary",
+          "nodes": [
+            "U_L",
+            "U_R"
+          ],
+          "diameter": 25.4,
+          "length": 595.1942241784274
+        },
+        {
+          "id": "ASB",
+          "label": "Travessa antissubmarina",
+          "category": "secondary",
+          "nodes": [
+            "V_L",
+            "V_R"
+          ],
+          "diameter": 25.4,
+          "length": 625.3123554679712
+        },
+        {
+          "id": "RLC",
+          "label": "Travessa traseira",
+          "category": "secondary",
+          "nodes": [
+            "R_L",
+            "R_R"
+          ],
+          "diameter": 25.4,
+          "length": 660
+        },
+        {
+          "id": "LDB_1",
+          "label": "Diagonal do arco traseiro",
+          "category": "secondary",
+          "nodes": [
+            "A_L",
+            "B_R"
+          ],
+          "diameter": 25.4,
+          "length": 1392.7639400216797
+        },
+        {
+          "id": "LDB_2",
+          "label": "Diagonal do arco traseiro",
+          "category": "secondary",
+          "nodes": [
+            "A_R",
+            "B_L"
+          ],
+          "diameter": 25.4,
+          "length": 1461.161581966311
+        },
+        {
+          "id": "LFDB_1",
+          "label": "Diagonal do assoalho",
+          "category": "secondary",
+          "nodes": [
+            "A_L",
+            "I_R"
+          ],
+          "diameter": 25.4,
+          "length": 1090.697087159875
+        },
+        {
+          "id": "LFDB_2",
+          "label": "Diagonal do assoalho",
+          "category": "secondary",
+          "nodes": [
+            "A_R",
+            "I_L"
+          ],
+          "diameter": 25.4,
+          "length": 1043.8600568655509
+        }
+      ]
+    }
+  }
+]

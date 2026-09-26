@@ -205,7 +205,7 @@ export default function Viewport(props: Props) {
         if (display.wireframe) {
           object = new THREE.Line(new THREE.BufferGeometry().setFromPoints([a, b]), new THREE.LineBasicMaterial({ color }));
         } else {
-          const radius = member.diameter / 2;
+          const radius = member.outerDiameter / 2;
           object = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, length, 12), new THREE.MeshStandardMaterial({ color, roughness: .40, metalness: .25, emissive: selected ? '#063c45' : '#000000' }));
           object.position.copy(a).lerp(b, .5);
           object.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), delta.normalize());

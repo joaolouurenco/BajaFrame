@@ -1,5 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { innerDiameter, tubeSectionArea, tubeVolume, tubeMass, validatePhysicalProperties } from '../src/model.ts';
 import { ANCHORS, PARAMS, computeFrame, initialProject, movePoint, setSymmetry, parseProject, serializeProject, distance, lerp, mirror } from '../src/model.ts';
 import type { Bracing, ParamKey, Project, Vec3 } from '../src/model.ts';
 
@@ -83,7 +85,7 @@ test('derived points follow their supporting members after free anchor moves', (
 });
 test('different tube categories retain independent diameters', () => {
   const p = initialProject(); p.params.primaryDiameter = 40; p.params.secondaryDiameter = 20;
-  for (const m of computeFrame(p).members) assert.equal(m.diameter, m.category === 'primary' ? 40 : 20);
+  for (const m of computeFrame(p).members) assert.equal(m.outerDiameter, m.category === 'primary' ? 40 : 20);
 });
 test('derived points cannot be detached using the free-move function', () => {
   const p = initialProject(); assert.strictEqual(movePoint(p, 'I_L', [500, 0, 500]), p);
@@ -101,7 +103,7 @@ test('saving and reloading preserves geometry and project state', () => {
   assert.equal(loaded.name, p.name);
 });
 test('invalid imports are rejected before changing a project', () => {
-  for (const input of [null, [], {}, { ...initialProject(), schemaVersion: 2 }, { ...initialProject(), name: '' }, { ...initialProject(), bracing: 'invalid' },
+  for (const input of [null, [], {}, { ...initialProject(), schemaVersion: 99 }, { ...initialProject(), name: '' }, { ...initialProject(), bracing: 'invalid' },
     { ...initialProject(), params: { ...initialProject().params, rrhHeight: -10 } },
     { ...initialProject(), params: { ...initialProject().params, baseWidth: NaN } },
     { ...initialProject(), offsets: { 'I_L': [0, 1, 2] } },
@@ -132,4 +134,143 @@ test('coincident points are reported without invalid geometry', () => {
   const f = computeFrame(movePoint(p, 'S_L', target));
   assert.ok(f.warnings.some(w => w.includes('coincidentes')));
   assert.ok(f.members.every(m => Number.isFinite(m.length)));
+});
+
+function close(actual: number, expected: number) {
+  assert.ok(Math.abs(actual - expected) <= 1e-10 * Math.max(1, Math.abs(expected)), `${actual} ≈ ${expected}`);
+}
+const legacyCases = JSON.parse(readFileSync(new URL('./fixtures/legacy-v1.json', import.meta.url), 'utf8'));
+
+test('new projects use V2 with the default walls and steel density', () => {
+  const p = initialProject();
+  assert.equal(p.schemaVersion, 2);
+  assert.equal(p.params.primaryThickness, 1.6);
+  assert.equal(p.params.secondaryThickness, 1.2);
+  assert.equal(p.materialDensity, 7850);
+});
+
+test('each category inherits its diameter and wall across all bracing configurations', () => {
+  for (const bracing of ['rear', 'front', 'both'] as Bracing[]) {
+    const p = initialProject(); p.bracing = bracing;
+    p.params.primaryDiameter = 40; p.params.primaryThickness = 2.5;
+    p.params.secondaryDiameter = 22; p.params.secondaryThickness = 0.8;
+    for (const m of computeFrame(p).members) {
+      assert.equal(m.outerDiameter, m.category === 'primary' ? 40 : 22);
+      assert.equal(m.wallThickness, m.category === 'primary' ? 2.5 : 0.8);
+      close(m.innerDiameter, m.category === 'primary' ? 35 : 20.4);
+      close(m.sectionArea, tubeSectionArea(m.outerDiameter, m.wallThickness));
+      close(m.volume, m.sectionArea * m.length);
+      close(m.estimatedMass, m.volume * 7850 / 1e9);
+    }
+  }
+});
+
+test('inner diameter subtracts two walls, in mm', () => {
+  close(innerDiameter(31.8, 1.6), 28.6);
+});
+test('area of a 10 mm tube with 1 mm wall is 9π mm²', () => {
+  close(tubeSectionArea(10, 1), 9 * Math.PI);
+});
+test('volume uses the complete centerline length and returns mm³', () => {
+  close(tubeVolume(10, 1, 1000), 9000 * Math.PI);
+  assert.equal(tubeVolume(10, 1, 0), 0);
+});
+test('mass converts mm³ to m³ before applying kg/m³ density', () => {
+  close(tubeMass(10, 1, 1000, 7850), 0.07065 * Math.PI);
+  assert.equal(tubeMass(10, 1, 0, 7850), 0);
+});
+
+test('frame mass equals member sums and category sums in every bracing configuration', () => {
+  for (const bracing of ['rear', 'front', 'both'] as Bracing[]) {
+    const f = computeFrame(movePoint({ ...initialProject(), bracing }, 'B_L', [-100, 420, 1250]));
+    close(f.totalMass, f.members.reduce((s, m) => s + m.estimatedMass, 0));
+    close(f.primaryMass, f.members.filter(m => m.category === 'primary').reduce((s, m) => s + m.estimatedMass, 0));
+    close(f.secondaryMass, f.members.filter(m => m.category === 'secondary').reduce((s, m) => s + m.estimatedMass, 0));
+    close(f.totalMass, f.primaryMass + f.secondaryMass);
+    assert.ok(f.primaryMass > 0 && f.secondaryMass > 0);
+  }
+});
+
+test('wall and density changes affect mass without moving points or changing external geometry', () => {
+  const p = initialProject(), before = computeFrame(p);
+  const denser = computeFrame({ ...p, materialDensity: p.materialDensity * 2 });
+  close(denser.totalMass, before.totalMass * 2);
+  const thicker = computeFrame({ ...p, params: { ...p.params, primaryThickness: 3 } });
+  assert.ok(thicker.primaryMass > before.primaryMass);
+  close(thicker.secondaryMass, before.secondaryMass);
+  for (const f of [denser, thicker]) {
+    assert.deepEqual(f.points, before.points);
+    assert.deepEqual(f.bounds, before.bounds);
+    assert.deepEqual(f.members.map(({ id, nodes, length, outerDiameter }) => ({ id, nodes, length, outerDiameter })),
+      before.members.map(({ id, nodes, length, outerDiameter }) => ({ id, nodes, length, outerDiameter })));
+  }
+});
+
+test('invalid sections are rejected by every pure formula including the equality boundary', () => {
+  for (const [D, t] of [[10, 0], [10, -1], [10, 5], [10, 6], [10, NaN], [10, Infinity], [0, 1], [-10, 1], [Infinity, 1], [NaN, 1]]) {
+    assert.throws(() => innerDiameter(D, t));
+    assert.throws(() => tubeSectionArea(D, t));
+    assert.throws(() => tubeVolume(D, t, 1000));
+    assert.throws(() => tubeMass(D, t, 1000, 7850));
+  }
+  assert.ok(innerDiameter(10, 4.999) > 0);
+  for (const length of [-1, NaN, Infinity]) assert.throws(() => tubeVolume(10, 1, length));
+  for (const density of [0, -1, NaN, Infinity]) assert.throws(() => tubeMass(10, 1, 1000, density));
+});
+
+test('JSON rejects missing, nonfinite, nonpositive and excessive walls for both categories', () => {
+  for (const key of ['primaryThickness', 'secondaryThickness'] as const) {
+    for (const value of [undefined, null, '1.6', NaN, Infinity, 0, -1, 0.4, 5.1, 15.9, 20]) {
+      assert.throws(() => parseProject({ ...initialProject(), params: { ...initialProject().params, [key]: value } }));
+    }
+    const p = initialProject();
+    p.params[key] = p.params[key === 'primaryThickness' ? 'primaryDiameter' : 'secondaryDiameter'] / 2;
+    assert.throws(() => validatePhysicalProperties(p));
+    assert.throws(() => computeFrame(p));
+  }
+});
+
+test('density is validated on import and at the model boundary', () => {
+  for (const materialDensity of [undefined, null, '7850', 0, -1, NaN, Infinity, 30001]) {
+    assert.throws(() => parseProject({ ...initialProject(), materialDensity }));
+  }
+  for (const materialDensity of [0, NaN, Infinity, 30001]) {
+    assert.throws(() => computeFrame({ ...initialProject(), materialDensity }));
+  }
+});
+
+test('real V1 fixtures migrate with identical geometry, independent offsets and bracing', () => {
+  // Captured from the unmodified V1 model before adding physical properties.
+  for (const { project, geometry } of legacyCases) {
+    const original = structuredClone(project), loaded = parseProject(project), f = computeFrame(loaded);
+    assert.equal(loaded.schemaVersion, 2);
+    assert.equal(loaded.params.primaryThickness, 1.6);
+    assert.equal(loaded.params.secondaryThickness, 1.2);
+    assert.equal(loaded.materialDensity, 7850);
+    assert.deepEqual(loaded.offsets, project.offsets);
+    assert.equal(loaded.symmetry, false);
+    assert.deepEqual(f.points, geometry.points);
+    assert.deepEqual(f.bounds, geometry.bounds);
+    assert.equal(f.totalLength, geometry.totalLength);
+    assert.deepEqual(f.members.map(({ id, label, category, nodes, outerDiameter, length }) =>
+      ({ id, label, category, nodes, diameter: outerDiameter, length })), geometry.members);
+    assert.deepEqual(project, original, 'migration must not mutate the supplied object');
+  }
+});
+
+test('V1 symmetric saves also migrate and reserialize as V2', () => {
+  const legacy = { ...legacyCases[0].project, symmetry: true };
+  const migrated = parseProject(legacy);
+  assertConnected(migrated);
+  assert.equal(JSON.parse(serializeProject(migrated)).schemaVersion, 2);
+});
+
+test('V2 roundtrip preserves physical inputs and serializes no derived properties', () => {
+  const p = movePoint(setSymmetry(initialProject(), false), 'C_R', [830, -390, 1200]);
+  p.params.primaryThickness = 2.3; p.params.secondaryThickness = 1.9; p.materialDensity = 2700;
+  const json = serializeProject(p), raw = JSON.parse(json), loaded = parseProject(raw);
+  assert.deepEqual(loaded, JSON.parse(JSON.stringify(p)), 'JSON normalizes negative zero');
+  assert.deepEqual(computeFrame(loaded), computeFrame(p));
+  assert.deepEqual(Object.keys(raw).sort(), ['schemaVersion', 'materialDensity', 'name', 'params', 'bracing', 'symmetry', 'offsets'].sort());
+  for (const field of ['members', 'totalMass', 'sectionArea', 'volume', 'estimatedMass', 'innerDiameter']) assert.equal(json.includes(`"${field}"`), false);
 });

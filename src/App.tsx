@@ -2,9 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowDownToLine, ArrowUpFromLine, Box, Check, ChevronRight, CircleHelp, Expand, Eye, EyeOff, Focus, Layers3, Maximize2, Move3d, Redo2, RotateCcw, SlidersHorizontal, Undo2, X, GitBranch, AlertTriangle, MousePointer2, Settings2, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import Viewport from './Viewport';
 import type { Display, Selection, View } from './Viewport';
-import { ANCHORS, PARAMS, computeFrame, initialProject, movePoint, parseProject, serializeProject, setSymmetry } from './model';
+import { ANCHORS, PARAMS, MATERIAL_DENSITY, computeFrame, initialProject, movePoint, parseProject, serializeProject, setSymmetry, validatePhysicalProperties } from './model';
 import type { ParamKey, Project, Vec3 } from './model';
 
+// Keep the original key: parseProject migrates existing V1 browser saves to V2.
 const STORAGE_KEY = 'bajaframe.project.v1';
 const format = (n: number, decimals = 0) => n.toLocaleString('pt-BR', { maximumFractionDigits: decimals });
 function load(): Project {
@@ -54,6 +55,8 @@ export default function App() {
   };
   const alter = (fn: (prev: Project) => Project) => {
     const next = fn(structuredClone(current.current));
+    try { validatePhysicalProperties(next); }
+    catch (error) { setToast((error as Error).message); return; }
     if (JSON.stringify(next) === JSON.stringify(current.current)) return;
     if (!gesture.current) { undo.current = [...undo.current.slice(-49), current.current]; redo.current = []; }
     current.current = next; setProject(next); setHistoryRevision(r => r + 1);
@@ -110,11 +113,11 @@ export default function App() {
     if (fileInput.current) fileInput.current.value = '';
   };
   const toggle = (key: keyof Display) => setDisplay(prev => ({ ...prev, [key]: !prev[key] }));
-  const field = (key: ParamKey) => {
+  const field = (key: ParamKey, label?: string) => {
     const def = PARAMS[key], value = project.params[key];
     const change = (n: number) => alter(prev => ({ ...prev, params: { ...prev.params, [key]: n } }));
     return <div className="parameter" key={key}>
-      <div className="parameter-top"><label htmlFor={`slider-${key}`}>{def.label}</label><div className="number-unit"><NumberInput value={value} label={`${def.label} (${def.unit})`} min={def.min} max={def.max} step={def.step} onCommit={change} /><span>{def.unit}</span></div></div>
+      <div className="parameter-top"><label htmlFor={`slider-${key}`}>{label ?? def.label}</label><div className="number-unit"><NumberInput value={value} label={`${def.label} (${def.unit})`} min={def.min} max={def.max} step={def.step} onCommit={change} /><span>{def.unit}</span></div></div>
       <input id={`slider-${key}`} type="range" aria-label={`${def.label} — slider`} min={def.min} max={def.max} step={def.step} value={value} onPointerDown={begin} onChange={e => change(Number(e.target.value))} style={{ '--fill': `${(value - def.min) / (def.max - def.min) * 100}%` } as React.CSSProperties} />
     </div>;
   };
@@ -128,7 +131,7 @@ export default function App() {
     </header>
 
     <aside className="sidebar" aria-label="Editor do frame">
-      <div className="sidebar-intro"><div className="eyebrow"><span className="live-dot"/> EDITOR PARAMÉTRICO <span className="version">V1.0</span></div><h1>Explore a estrutura.</h1><p>Uma base comum para as ideias da equipe.</p></div>
+      <div className="sidebar-intro"><div className="eyebrow"><span className="live-dot"/> EDITOR PARAMÉTRICO <span className="version">V1.1</span></div><h1>Explore a estrutura.</h1><p>Uma base comum para as ideias da equipe.</p></div>
       <div className="editor-tabs" role="tablist" aria-label="Ferramentas de edição">
         <button role="tab" aria-selected={tab === 'dimensions'} onClick={() => setTab('dimensions')}><SlidersHorizontal size={15}/>Dimensões</button>
         <button role="tab" aria-selected={tab === 'structure'} onClick={() => setTab('structure')}><Layers3 size={15}/>Estrutura</button>
@@ -138,9 +141,9 @@ export default function App() {
         {tab === 'dimensions' && <>
           <div className="section-heading"><span>01</span><h2>Proporções do frame</h2><Box size={16}/></div>
           <p className="section-caption">Medidas em milímetros. Os tubos acompanham cada alteração.</p>
-          {(['rrhHeight', 'cockpitLength', 'roofLength', 'noseLength', 'rrhAngle', 'simHeight'] as ParamKey[]).map(field)}
+          {(['rrhHeight', 'cockpitLength', 'roofLength', 'noseLength', 'rrhAngle', 'simHeight'] as ParamKey[]).map(key => field(key))}
           <div className="section-heading divider"><span>02</span><h2>Larguras</h2><Expand size={16}/></div>
-          {(['baseWidth', 'topWidth', 'simWidth', 'frontWidth'] as ParamKey[]).map(field)}
+          {(['baseWidth', 'topWidth', 'simWidth', 'frontWidth'] as ParamKey[]).map(key => field(key))}
           <div className="editor-note"><InfoMark/>Os controles alteram a geometria-base. Deslocamentos feitos em “Pontos” são somados a ela.</div>
         </>}
         {tab === 'structure' && <>
@@ -152,14 +155,38 @@ export default function App() {
           {project.bracing !== 'front' && <>{field('rearLength')}{field('rearHeight')}</>}
           {field('floorPosition')}
           <div className="section-heading divider"><span>02</span><h2>Tubos e visualização</h2><Settings2 size={16}/></div>
-          {field('primaryDiameter')}{field('secondaryDiameter')}
+          <details className="advanced-section">
+            <summary><Settings2 size={15}/><span>Avançado</span><ChevronRight size={15}/></summary>
+            <div className="advanced-content">
+              <h3>Tubos primários</h3>
+              {field('primaryDiameter', 'Diâmetro externo')}{field('primaryThickness', 'Espessura')}
+              <h3>Tubos secundários</h3>
+              {field('secondaryDiameter', 'Diâmetro externo')}{field('secondaryThickness', 'Espessura')}
+              <h3>Material</h3>
+              <div className="parameter-top density-field"><span>Densidade</span><div className="number-unit"><NumberInput value={project.materialDensity} label="Densidade do material (kg/m³)" min={MATERIAL_DENSITY.min} max={MATERIAL_DENSITY.max} step={MATERIAL_DENSITY.step} onCommit={n => alter(prev => ({ ...prev, materialDensity: n }))}/><span>kg/m³</span></div></div>
+              <p className="mini-note">Padrão: aço, 7.850 kg/m³. Uma densidade para todo o frame.</p>
+              <div className="mass-summary" aria-label="Massas estimadas">
+                <span>Massa estimada do frame</span><strong data-testid="total-mass">{format(frame.totalMass, 2)} <small>kg</small></strong>
+                <dl className="physical-properties"><div><dt>Primários</dt><dd data-testid="primary-mass">{format(frame.primaryMass, 2)} kg</dd></div><div><dt>Secundários</dt><dd data-testid="secondary-mass">{format(frame.secondaryMass, 2)} kg</dd></div></dl>
+              </div>
+              <p className="mini-note">Estimativa pela seção e pelo comprimento dos eixos. Não inclui soldas, recortes, encaixes ou correções de dobra.</p>
+            </div>
+          </details>
           <div className="visibility-list">
             <button onClick={() => toggle('primary')} aria-pressed={display.primary}><span className="color-dot primary"/>Membros primários {display.primary ? <Eye size={16}/> : <EyeOff size={16}/>}</button>
             <button onClick={() => toggle('secondary')} aria-pressed={display.secondary}><span className="color-dot secondary"/>Membros secundários {display.secondary ? <Eye size={16}/> : <EyeOff size={16}/>}</button>
           </div>
           <div className="section-heading divider"><span>03</span><h2>Membros do frame</h2><span className="count">{frame.members.length}</span></div>
+          {member && <div className="selection-info" aria-label="Propriedades do membro selecionado"><strong>{member.id} · {member.label}</strong>
+            <dl className="physical-properties">
+              <div><dt>Categoria</dt><dd>{member.category === 'primary' ? 'Primário' : 'Secundário'}</dd></div>
+              <div><dt>Comprimento</dt><dd>{format(member.length, 1)} mm</dd></div>
+              <div><dt>Ø externo</dt><dd>{format(member.outerDiameter, 1)} mm</dd></div>
+              <div><dt>Parede</dt><dd>{format(member.wallThickness, 1)} mm</dd></div>
+              <div><dt>Ø interno</dt><dd>{format(member.innerDiameter, 1)} mm</dd></div>
+              <div><dt>Massa estimada</dt><dd>{format(member.estimatedMass, 3)} kg</dd></div>
+            </dl><small>Ligações: {member.nodes.join(' → ')}</small></div>}
           <div className="member-list">{frame.members.map(m => <button key={m.id} className={member?.id === m.id ? 'selected' : ''} onClick={() => select({ type: 'member', id: m.id })} aria-label={`Selecionar membro ${m.id}`}><span className={`color-dot ${m.category}`}/><span><strong>{m.id}</strong><small>{m.label}</small></span><span className="member-length">{format(m.length)}<small>mm</small></span></button>)}</div>
-          {member && <div className="selection-info"><strong>{member.id} · {member.label}</strong><p>Ø {format(member.diameter, 1)} mm · eixo {format(member.length)} mm</p><small>Ligações: {member.nodes.join(' → ')}</small></div>}
         </>}
         {tab === 'points' && <>
           <div className="section-heading"><span>01</span><h2>Editar pontos</h2><Move3d size={16}/></div>
@@ -196,7 +223,7 @@ export default function App() {
       <footer className="workspace-footer"><span><MousePointer2 size={13}/><span>Arraste para girar · roda para zoom · botão direito para deslocar</span></span><span>Dimensões entre eixos · esboço visual</span></footer>
     </main>
     {toast && <div className="toast" role="status"><Check size={17}/><span>{toast}</span><button aria-label="Fechar aviso" onClick={() => setToast('')}><X size={15}/></button></div>}
-    <dialog ref={helpDialog} className="help-dialog"><div className="dialog-top"><span className="eyebrow">GUIA RÁPIDO</span><button className="icon-button" aria-label="Fechar ajuda" onClick={() => helpDialog.current?.close()}><X size={20}/></button></div><h2>Um frame. Muitas possibilidades.</h2><p>Explore a estrutura com a equipe. Tudo funciona localmente, sem conta e sem envio de dados.</p><ol><li><strong>Ajuste as dimensões.</strong> Use os sliders ou digite uma medida e pressione Enter. Os pontos e tubos acompanham a mudança.</li><li><strong>Compare os travamentos.</strong> Em “Estrutura”, alterne o arranjo, os diâmetros e a visibilidade dos grupos.</li><li><strong>Edite pontos no espaço.</strong> Selecione um ponto em “Pontos”. Arraste uma seta colorida ou informe X, Y e Z. Com simetria, o outro lado acompanha.</li><li><strong>Guarde e compartilhe.</strong> “Salvar projeto” baixa um JSON. Outra pessoa pode usar “Abrir” no seu próprio visualizador. Ctrl+Z desfaz alterações.</li></ol><div className="help-note">Este é um esboço visual da estrutura. Os tubos são representados pelo diâmetro externo; curvas, paredes, cortes e soldas não são detalhados. Cruzamentos visuais não significam juntas fabricadas. As cotas são entre eixos. Não há validação de conformidade regulamentar ou análise estrutural.</div><p className="mini-note">Arquivo portátil: abra <strong>BajaFrame.html</strong> em um navegador moderno. Internet não é necessária. O salvamento automático depende do armazenamento local do navegador; mantenha um JSON para transportar o projeto.</p><button className="button dark full" onClick={() => helpDialog.current?.close()}>Entendi, explorar o frame<ChevronRight size={16}/></button></dialog>
+    <dialog ref={helpDialog} className="help-dialog"><div className="dialog-top"><span className="eyebrow">GUIA RÁPIDO</span><button className="icon-button" aria-label="Fechar ajuda" onClick={() => helpDialog.current?.close()}><X size={20}/></button></div><h2>Um frame. Muitas possibilidades.</h2><p>Explore a estrutura com a equipe. Tudo funciona localmente, sem conta e sem envio de dados.</p><ol><li><strong>Ajuste as dimensões.</strong> Use os sliders ou digite uma medida e pressione Enter. Os pontos e tubos acompanham a mudança.</li><li><strong>Compare os travamentos.</strong> Em “Estrutura”, alterne o arranjo e a visibilidade. Abra “Avançado” para editar diâmetros, paredes e densidade e consultar a massa estimada.</li><li><strong>Edite pontos no espaço.</strong> Selecione um ponto em “Pontos”. Arraste uma seta colorida ou informe X, Y e Z. Com simetria, o outro lado acompanha.</li><li><strong>Guarde e compartilhe.</strong> “Salvar projeto” baixa um JSON. Outra pessoa pode usar “Abrir” no seu próprio visualizador. Ctrl+Z desfaz alterações.</li></ol><div className="help-note">Este é um esboço visual da estrutura. Os tubos são representados pelo diâmetro externo; o interior oco, curvas, cortes e soldas não são desenhados. A parede e a densidade servem à estimativa de massa. Cruzamentos visuais não significam juntas fabricadas. As cotas são entre eixos. Não há validação de conformidade regulamentar ou análise estrutural.</div><p className="mini-note">Arquivo portátil: abra <strong>BajaFrame.html</strong> em um navegador moderno. Internet não é necessária. O salvamento automático depende do armazenamento local do navegador; mantenha um JSON para transportar o projeto.</p><button className="button dark full" onClick={() => helpDialog.current?.close()}>Entendi, explorar o frame<ChevronRight size={16}/></button></dialog>
     <dialog ref={resetDialog} className="reset-dialog"><h2>Voltar ao frame inicial?</h2><p>As medidas e os ajustes locais serão restaurados. Você poderá desfazer essa ação.</p><div className="dialog-actions"><button className="button outline" onClick={() => resetDialog.current?.close()}>Cancelar</button><button className="button dark" onClick={() => { alter(() => initialProject()); setSelection(null); setView('perspective'); setFitCounter(n => n + 1); resetDialog.current?.close(); }}>Restaurar frame</button></div></dialog>
     <span className="sr-only" aria-live="polite">{historyRevision > 0 ? 'Configuração atualizada.' : ''}</span>
   </div>;
