@@ -1,78 +1,83 @@
-# Auditoria da entrega — BajaFrame 1.1
+# Auditoria — BajaFrame 1.2
 
-Data: 26 de setembro de 2026. Este relatório descreve as verificações desta evolução; o relatório anterior permanece no histórico Git.
+Data: 25 de outubro de 2026. Relatório desta rodada de refinamento; os relatórios anteriores permanecem no histórico Git.
 
-## Escopo entregue
+## Escopo verificado
 
-Espessura global por categoria, densidade global, funções puras para diâmetro interno, área, volume e massa, totais do frame por categoria, controles recolhíveis em Estrutura → Avançado e propriedades do membro selecionado. O 3D continua usando o diâmetro externo. Arquivos V1 migram para V2; resultados derivados não são gravados no JSON. Não foram adicionados backend, dependências, STEP/STP, FEA ou certificação RATBSB.
+Separação entre pós-firewall e travamento traseiro; edição de inclinação, comprimento e apoios do dianteiro; tubos adicionais; nós compartilhados nos cruzamentos reais; terminações visuais e lista de interferências. O schema passou a V3, com leitura de V1/V2. Exportação CAD/SolidWorks/STEP continua em standby por solicitação do usuário.
 
-Auditoria executada pelo agente implementador. Não constitui revisão independente de engenharia nem validação estrutural do chassi.
+As decisões e limitações estão em `REFINAMENTOS.md`. Esta é uma auditoria do software feita pelo agente implementador, não uma revisão independente de engenharia.
 
-## Ambiente e comandos
+## Comandos e ambiente
 
-Windows; Node.js 24.14.1; npm 11.11.0; navegador Chromium integrado com WebGL disponível. Aplicação de desenvolvimento em 127.0.0.1:3001; HTML compilado servido estaticamente por `npm run preview -- --port 4174`.
+Windows, Node.js 24.14.1, npm 11.11.0. Navegador Chromium integrado com WebGL. Desenvolvimento em 127.0.0.1:3002; compilação estática em 127.0.0.1:4176.
 
-- `npm test`: **30 testes aprovados, zero falhas**.
-- `npm run build`: TypeScript aprovado; Vite gerou um HTML com JavaScript e CSS embutidos, aproximadamente 888 kB. Permanecem dois avisos de empacotamento sobre `use client` em lucide-react; não impediram compilação ou execução nos fluxos testados.
-- `node scripts/package.mjs`: regenerou `release/BajaFrame`, incluindo HTML, documentação, fontes, lockfile, testes, fixtures e três exemplos V2.
-- `npm run audit:portable`: aprovado. Conferiu HTML igual ao build, recursos embutidos, documentos, licenças, exemplos V2 e igualdade das fontes/testes/scripts distribuídos com os originais.
-- Nenhuma dependência foi acrescentada ou atualizada. O manifest e o lockfile receberam a versão 1.1.0 do aplicativo.
+- `npm run package`: aprovado; executou os testes, a verificação TypeScript, o build e a preparação do pacote.
+- `npm test`: **45 testes aprovados, zero falhas**.
+- `npm run build`: aprovado; HTML único de aproximadamente 905 kB. Permanecem dois avisos sobre `use client` em lucide-react; não impediram a execução observada.
+- `npm run audit:portable`: aprovado; HTML distribuído idêntico ao build, recursos embutidos, documentos/licenças, três exemplos V3 e fontes/testes/scripts iguais aos originais.
+- `git diff --check`: sem problemas de whitespace nos arquivos rastreados.
+- Nenhuma dependência adicionada ou atualizada. Manifest e lockfile recebem a versão 1.2.0 do aplicativo.
 
-## Testes automatizados e regressões
+SHA-256 de `dist/index.html` e do HTML distribuído:
 
-Os 16 testes anteriores foram mantidos, com atualização do nome `outerDiameter` e da versão usada no caso de rejeição. Continuam cobrindo conectividade, simetria, offsets, edição independente, pontos derivados, limites de coordenadas, serialização, importações inválidas e comprimentos. O teste de extremos agora percorre os 17 parâmetros em três travamentos: **102 combinações**, além das **120 combinações de semente fixa** existentes.
+`4c0b9293648e20e0c99fc6604317bc9156859fa88d8f0a32d03b685ff5392dd7`
 
-Os 14 novos testes verificam padrões, herança por categoria, diâmetro interno, área, volume, conversão de massa, totais por categoria, efeito da densidade/parede sem alteração da geometria externa, rejeição de entradas físicas inválidas, migração V1 e leitura/escrita V2. As comparações físicas usam tolerância relativa de 1e-10, com piso absoluto de 1e-10.
+## Cobertura automatizada
 
-`tests/fixtures/legacy-v1.json` foi capturado do modelo original antes da alteração, com offsets independentes e os três travamentos. Após a migração, os testes comparam exatamente pontos, conexões, identificadores, categorias, diâmetros externos, comprimentos e limites geométricos com essa referência. As comparações passaram.
+Os 30 testes anteriores foram mantidos e adaptados às mudanças intencionais do schema, da presença da traseira e dos nós intermediários. Permanecem as verificações de conectividade, simetria, offsets, pontos vinculados, propriedades físicas, entradas inválidas e persistência. O teste de extremos percorre agora 21 parâmetros em três configurações: **126 combinações**, além das **120 combinações de semente fixa**.
 
-Foram verificadas rejeições de paredes ausentes, não numéricas, não finitas, não positivas e fora dos limites, além da condição estrita `2t < D` nas funções físicas e na fronteira do modelo. O parser valida intervalos e chama a mesma validação física; os intervalos atuais da interface já impedem combinações com `2t >= D`.
+A referência V1 capturada anteriormente continua verificando as coordenadas originais, limites, categorias, diâmetros, sequência dos apoios originais e comprimentos. Novos nós de ligação e os rótulos pós-firewall são mudanças intencionais. Os comprimentos são comparados com tolerância numérica; nenhum apoio original da fixture foi deslocado pela migração.
 
-## Verificações no navegador
+Os 15 testes de refinamento cobrem:
 
-| Cenário | Resultado observado |
+- Dianteiro com pós-firewall independente, medidas traseiras e ausência de B–R.
+- Ativação/desativação da traseira, dependência de B–R, manutenção dos offsets e modo sem travamentos adicionais.
+- Migração V2 preservando espessuras, densidade e presença/ausência original da traseira.
+- Edição inversa de inclinação/comprimento superior e inferior, inclusive com offset; apoios permanecem nos tubos. Valores fora da faixa são limitados e valores não finitos são rejeitados.
+- Separação entre contato intencional de uma ligação e interferência entre duas barras próximas.
+- Inclusão de par espelhado, soma de massa, leitura/escrita V3, suspensão e retorno dos tubos cujos apoios foram ocultados.
+- Rejeição de duplicatas, sobreposições ao adicionar, dados malformados e excesso de tubos. Travessa espelhada não é contada duas vezes.
+- Interseção em X com um nó compartilhado, pontos de término na superfície circular e casos de segmentos paralelos, degenerados ou com aproximação em planos distintos.
+- Aviso de trechos sem espaço entre encontros, preservando seus eixos e propriedades do projeto.
+- Arranjos iniciais rear/front/both/none com encontros conectados, nenhuma interferência apontada e nenhum trecho ocultado por ser curto.
+
+## Navegador real
+
+| Cenário | Observação |
 | --- | --- |
-| Estado inicial | Frame traseiro com 30 membros; massa 26,58 kg, primários 16,35 kg, secundários 10,23 kg |
-| Parede primária | Mudança de 1,6 para 2 mm levou a massa a 30,39 kg |
-| Desfazer e Refazer | Massa retornou a 26,58 kg e depois a 30,39 kg |
-| Densidade | Com parede primária de 2 mm, mudar 7.850 para 15.700 kg/m³ levou a massa exibida a 60,79 kg; o teste numérico confirma duplicação antes do arredondamento |
-| Membro selecionado | RRH_L mostrou categoria, comprimento 1.200,1 mm, diâmetro externo 31,8 mm, parede 2 mm, interno 27,8 mm e massa 3,528 kg na densidade de 15.700 kg/m³ |
-| Persistência V2 | Após recarregar, parede de 2 mm, densidade de 15.700 kg/m³ e massa de 60,79 kg permaneceram |
-| Importação V1 | Fixture combinado com offsets independentes abriu com 34 membros, paredes 1,6/1,2 mm, densidade 7.850 kg/m³ e massa 28,5 kg |
-| Download e reabertura | JSON baixado foi lido no disco: schema 2, paredes, densidade, travamento e offsets presentes. O mesmo arquivo foi reaberto na interface |
-| Importação inválida | Parede primária zero foi rejeitada com mensagem; o frame de 34 membros e 28,5 kg permaneceu |
-| Limites e slider | Entrada -2 mm foi limitada a 0,5 mm; Desfazer recuperou o valor anterior. Seta direita no slider secundário mudou 1,2 para 1,3 mm |
-| Travamentos | Dianteiro: 27 membros; traseiro: 30; combinado: 34 |
-| Edição de pontos | Com simetria reativada, Y de B_L alterado para 450 mm produziu Y de B_R = -450 mm e largura de 900 mm |
-| Migração real do localStorage | HTML V1 do commit anterior foi servido em uma rota temporária no mesmo endereço do preview; salvou altura 1.300 mm. Ao navegar para o HTML novo, a altura permaneceu e paredes/densidade foram preenchidas. A chave original foi mantida |
-| HTML compilado | A versão 1.1 executou por HTTP local com renderização 3D e controles físicos |
-| Tela estreita | Viewport 390 × 844: campos e massas acessíveis; largura útil e largura do documento iguais a 375 px, sem transbordamento horizontal. Tamanho restaurado após o teste |
-| Restaurar frame | Retornou à massa inicial de 26,58 kg |
-| Ocultar categoria | Ocultar secundários não alterou a massa total de 26,58 kg |
-| Console | Nenhum erro registrado nas duas abas usadas nos fluxos observados |
+| Independência da traseira | Dianteiro ativo, traseiro desligado e pós-firewall ativo: 32 membros |
+| Largura traseira | Alterada para 900 mm com travamento traseiro desligado; largura do frame passou a 900 mm |
+| Inclinação superior | Q–P alterado para 70°; comprimento passou a 513,4 mm |
+| Histórico | Desfazer recuperou aproximadamente 82°; Refazer reaplicou a edição |
+| Comprimento inferior | P–J recebeu 500 mm; inclinação exibida de 57,1° |
+| Avisos após edição | Aproximação de J à travessa I produziu quatro pares de interferência; o modelo não deslocou os apoios automaticamente |
+| Tubo adicional | Q_L → F_L com par: contagem passou de 32 a 34; remoção voltou a 32 e Desfazer recuperou 34 |
+| Persistência | Recarregamento manteve os 34 membros do projeto salvo |
+| JSON V3 | Download lido no disco: schema 3, bracing front, rearEnabled true, largura 900 e tubo T1 espelhado presentes |
+| Importação V2 | Exemplo dianteiro do commit anterior abriu com 27 membros e pós-firewall desligado |
+| Ativar traseira após importação | Passou a 32 membros, mantendo o travamento traseiro desligado |
+| Sobreposição ao adicionar | Tentativa C_L → D_L rejeitada com mensagem; não criou um tubo duplicado |
+| HTML compilado | Executou por HTTP local; reabriu o JSON V3 baixado com 34 membros, inclinação 70° e largura 900 mm |
+| Inspeção visual | Conferidas vistas 3D, lateral e superior; a terminação foi refinada para acompanhar a superfície receptora, evitando o vão do primeiro recuo plano |
+| Tela estreita | Viewport 390 × 844: controles de inclusão e apoios acessíveis; largura útil e documento com 375 px, sem transbordamento horizontal. Viewport restaurado após teste |
+| Console | Nenhum erro registrado nos fluxos observados em desenvolvimento e no HTML compilado |
 
-## Distribuição e limites
+## Limites desta auditoria
 
-O diretório `release/BajaFrame` foi atualizado. O HTML da entrega e `dist/index.html` têm SHA-256:
+- A lista de interferências usa segmentos de eixos e raios, com exclusão do contato local junto a um nó compartilhado. Não testa integralmente sólidos, soldas, raios de dobra, auto-interferências de um mesmo membro ou resistência.
+- A terminação da malha é aproximada. Não gera geometria CAD de fabricação. Alterações livres ainda podem produzir interferências ou trechos muito curtos; os avisos orientam o ajuste.
+- O cálculo de massa continua baseado nos eixos e não desconta recortes/encaixes. A visualização não declara conformidade RATBSB.
+- A abertura direta por duplo clique não foi repetida: o navegador de automação havia bloqueado `file://` na auditoria anterior. O bloqueio não foi contornado; o mesmo HTML foi testado via HTTP local.
+- Não houve nesta rodada instalação limpa, consulta de vulnerabilidades, teste de ZIP, rede desligada, teste em outros navegadores/sistemas ou repetição do arraste manual de eixos 3D. Simetria, offsets e edição dos pontos permanecem cobertos pelos testes de modelo.
 
-`438de7b59cff5cfa10569eb05326c70c5da27082d739e9eab108f448c396d96f`
-
-O README documenta execução pelo HTML ou pelo código-fonte, unidades, fórmulas, intervalos, migração e limitações da estimativa. Para compartilhar, use o diretório atualizado ou compacte seu conteúdo; um ZIP antigo não é atualizado automaticamente.
-
-- A abertura direta por duplo clique não foi testada nesta etapa. A auditoria anterior registrou bloqueio de navegação `file://` pelo navegador de automação; esse bloqueio não foi contornado. Foi exercitado o mesmo HTML via HTTP local.
-- Não houve nova instalação limpa com `npm ci`, nova consulta `npm audit`, teste de ZIP, teste com rede desligada ou execução em outros navegadores/sistemas nesta etapa.
-- A edição por coordenadas e o espelhamento foram exercitados no navegador; o arraste do manipulador 3D não foi repetido nesta etapa. O código do manipulador não foi modificado.
-- As massas são estimativas de tubos uniformes ao longo dos eixos. Não descontam sobreposições, recortes e encaixes, nem incluem soldas, suportes ou correções reais de dobra. Nenhuma análise de resistência ou conformidade regulamentar foi realizada.
-
-## Como repetir
+## Repetir
 
 ```text
 npm ci
-npm test
-npm run build
-node scripts/package.mjs
+npm run package
 npm run audit:portable
 npm run preview
 ```
 
-Abra o endereço local informado no terminal e repita os cenários da tabela. O código-fonte distribuído inclui as fixtures V1 para repetir os testes de regressão.
+A pasta `release/BajaFrame` contém o HTML atualizado, documentação, exemplos V3, código, testes e lockfile. Um ZIP antigo não é atualizado automaticamente; compacte novamente essa pasta se precisar distribuir por ZIP.

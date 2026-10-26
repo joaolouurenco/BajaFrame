@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { TransformControls } from 'three/addons/controls/TransformControls.js';
 import type { Frame, Vec3 } from './model';
+import { junctionInset, renderSegments } from './connections';
 
 export type View = 'perspective' | 'side' | 'top' | 'front';
 export interface Display { points: boolean; labels: boolean; dimensions: boolean; primary: boolean; secondary: boolean; wireframe: boolean }
@@ -192,13 +193,15 @@ export default function Viewport(props: Props) {
     if (!e) return;
     disposeGroup(e.group);
     const { frame, display, selection } = props;
-    const position = (id: string) => v3(frame.points[id].position);
     for (const member of frame.members) {
       if (!display[member.category]) continue;
       const selected = selection?.type === 'member' && selection.id === member.id;
       const color = selected ? '#55dcee' : member.category === 'primary' ? '#d3dce6' : '#ccec85';
-      for (let i = 1; i < member.nodes.length; i++) {
-        const a = position(member.nodes[i - 1]), b = position(member.nodes[i]);
+      const segments = display.wireframe
+        ? member.nodes.slice(1).map((id, i) => ({ from: member.nodes[i], to: id }))
+        : renderSegments(frame.points, frame.members, frame.joints, member);
+      for (const segment of segments) {
+        const a = v3(frame.points[segment.from].position), b = v3(frame.points[segment.to].position);
         const delta = b.clone().sub(a), length = delta.length();
         if (length < .01) continue;
         let object: THREE.Mesh | THREE.Line;
@@ -206,9 +209,24 @@ export default function Viewport(props: Props) {
           object = new THREE.Line(new THREE.BufferGeometry().setFromPoints([a, b]), new THREE.LineBasicMaterial({ color }));
         } else {
           const radius = member.outerDiameter / 2;
-          object = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, length, 12), new THREE.MeshStandardMaterial({ color, roughness: .40, metalness: .25, emissive: selected ? '#063c45' : '#000000' }));
+          const geometry = new THREE.CylinderGeometry(radius, radius, length, 24);
+          const orientation = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), delta.clone().normalize());
+          const vertices = geometry.getAttribute('position');
+          for (let v = 0; v < vertices.count; v++) {
+            const top = vertices.getY(v) > 0;
+            const radial = new THREE.Vector3(vertices.getX(v), 0, vertices.getZ(v)).applyQuaternion(orientation);
+            const forward = delta.clone().normalize();
+            const start = junctionInset(frame.points, frame.members, frame.joints, member, segment.from, radial.toArray() as Vec3, forward.toArray() as Vec3);
+            const end = junctionInset(frame.points, frame.members, frame.joints, member, segment.to, radial.toArray() as Vec3, forward.negate().toArray() as Vec3);
+            // If the two receiving surfaces meet, collapse that strip instead of inverting it.
+            const factor = start + end > length ? length / (start + end) : 1;
+            const inset = (top ? end : start) * factor;
+            vertices.setY(v, vertices.getY(v) + (top ? -inset : inset));
+          }
+          geometry.computeVertexNormals();
+          object = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color, roughness: .40, metalness: .25, emissive: selected ? '#063c45' : '#000000' }));
           object.position.copy(a).lerp(b, .5);
-          object.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), delta.normalize());
+          object.quaternion.copy(orientation);
         }
         object.userData = { selectable: true, selection: { type: 'member', id: member.id }, title: `${member.id} · ${member.label}` };
         e.group.add(object);

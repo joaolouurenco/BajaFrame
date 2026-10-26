@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "materialDensity": 7850,
   "name": "Estudo - travamento traseiro",
   "params": {
@@ -15,6 +15,10 @@
     "noseLength": 300,
     "rearLength": 520,
     "rearHeight": 580,
+    "rearWidth": 660,
+    "frontUpperPosition": 15,
+    "frontSidePosition": 62,
+    "frontFloorPosition": 52,
     "floorPosition": 64,
     "primaryDiameter": 31.8,
     "secondaryDiameter": 25.4,
@@ -22,6 +26,8 @@
     "secondaryThickness": 1.2
   },
   "bracing": "rear",
+  "rearEnabled": true,
+  "extraTubes": [],
   "symmetry": true,
   "offsets": {
     "A_R": [

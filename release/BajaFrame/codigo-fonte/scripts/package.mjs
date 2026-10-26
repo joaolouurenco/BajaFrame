@@ -7,7 +7,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const out = path.join(root, 'release', 'BajaFrame');
 await mkdir(out, { recursive: true });
 await copyFile(path.join(root, 'dist/index.html'), path.join(out, 'BajaFrame.html'));
-for (const name of ['README.md', 'LEIA-ME.html', 'AUDITORIA.md']) await copyFile(path.join(root, name), path.join(out, name));
+for (const name of ['README.md', 'LEIA-ME.html', 'AUDITORIA.md', 'REFINAMENTOS.md']) await copyFile(path.join(root, name), path.join(out, name));
 
 const packages = ['react', 'react-dom', 'scheduler', 'three', 'lucide-react'];
 const notices = ['BAJAFRAME - BIBLIOTECAS INCLUIDAS NA VERSÃO PORTÁTIL\n'];
@@ -31,7 +31,7 @@ async function copyFolder(source, target) {
 const source = path.join(out, 'codigo-fonte');
 await mkdir(source, { recursive: true });
 for (const folder of ['src', 'tests', 'scripts']) await copyFolder(path.join(root, folder), path.join(source, folder));
-for (const name of ['README.md', 'LEIA-ME.html', 'AUDITORIA.md', 'package.json', 'package-lock.json', 'tsconfig.json', 'vite.config.ts', 'index.html', '.gitignore']) await copyFile(path.join(root, name), path.join(source, name));
+for (const name of ['README.md', 'LEIA-ME.html', 'AUDITORIA.md', 'REFINAMENTOS.md', 'package.json', 'package-lock.json', 'tsconfig.json', 'vite.config.ts', 'index.html', '.gitignore']) await copyFile(path.join(root, name), path.join(source, name));
 // Execute our own TypeScript model, using the installed and locked test runner.
 execFileSync(process.execPath, [path.join(root, 'node_modules/tsx/dist/cli.mjs'), path.join(root, 'scripts/examples.ts')], { cwd: root, stdio: 'inherit' });
 console.log(`Pacote preparado em ${out}`);

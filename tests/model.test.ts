@@ -31,9 +31,9 @@ function assertConnected(project: Project) {
 test('all three bracing configurations form a connected, symmetric frame', () => {
   for (const bracing of ['rear', 'front', 'both'] as Bracing[]) {
     const f = assertConnected({ ...initialProject(), bracing });
-    assert.equal(f.members.some(m => m.id === 'FABMID_L'), bracing !== 'front');
+    assert.equal(f.members.some(m => m.id === 'FABUP_L'), bracing !== 'front');
     assert.equal(f.members.some(m => m.id === 'FAB_FRONT_LOW_L'), bracing !== 'rear');
-    assert.equal(Boolean(f.points.R_L), bracing !== 'front');
+    assert.equal(Boolean(f.points.R_L), true);
   }
 });
 test('all parameter extrema preserve connections and finite geometry', () => {
@@ -141,9 +141,9 @@ function close(actual: number, expected: number) {
 }
 const legacyCases = JSON.parse(readFileSync(new URL('./fixtures/legacy-v1.json', import.meta.url), 'utf8'));
 
-test('new projects use V2 with the default walls and steel density', () => {
+test('new projects use V3 with the default walls and steel density', () => {
   const p = initialProject();
-  assert.equal(p.schemaVersion, 2);
+  assert.equal(p.schemaVersion, 3);
   assert.equal(p.params.primaryThickness, 1.6);
   assert.equal(p.params.secondaryThickness, 1.2);
   assert.equal(p.materialDensity, 7850);
@@ -243,34 +243,38 @@ test('real V1 fixtures migrate with identical geometry, independent offsets and 
   // Captured from the unmodified V1 model before adding physical properties.
   for (const { project, geometry } of legacyCases) {
     const original = structuredClone(project), loaded = parseProject(project), f = computeFrame(loaded);
-    assert.equal(loaded.schemaVersion, 2);
+    assert.equal(loaded.schemaVersion, 3);
     assert.equal(loaded.params.primaryThickness, 1.6);
     assert.equal(loaded.params.secondaryThickness, 1.2);
     assert.equal(loaded.materialDensity, 7850);
     assert.deepEqual(loaded.offsets, project.offsets);
     assert.equal(loaded.symmetry, false);
-    assert.deepEqual(f.points, geometry.points);
+    for (const [id, old] of Object.entries(geometry.points) as [string, {position: Vec3}][]) assert.deepEqual(f.points[id].position, old.position);
     assert.deepEqual(f.bounds, geometry.bounds);
-    assert.equal(f.totalLength, geometry.totalLength);
-    assert.deepEqual(f.members.map(({ id, label, category, nodes, outerDiameter, length }) =>
-      ({ id, label, category, nodes, diameter: outerDiameter, length })), geometry.members);
+    close(f.totalLength, geometry.totalLength);
+    assert.equal(f.members.length, geometry.members.length);
+    for (const old of geometry.members) {
+      const m = f.members.find(m => m.id === old.id)!;
+      assert.equal(m.category, old.category); assert.equal(m.outerDiameter, old.diameter); close(m.length, old.length);
+      assert.deepEqual(m.nodes.filter(id => old.nodes.includes(id)), old.nodes);
+    }
     assert.deepEqual(project, original, 'migration must not mutate the supplied object');
   }
 });
 
-test('V1 symmetric saves also migrate and reserialize as V2', () => {
+test('V1 symmetric saves also migrate and reserialize as V3', () => {
   const legacy = { ...legacyCases[0].project, symmetry: true };
   const migrated = parseProject(legacy);
   assertConnected(migrated);
-  assert.equal(JSON.parse(serializeProject(migrated)).schemaVersion, 2);
+  assert.equal(JSON.parse(serializeProject(migrated)).schemaVersion, 3);
 });
 
-test('V2 roundtrip preserves physical inputs and serializes no derived properties', () => {
+test('V3 roundtrip preserves physical inputs and serializes no derived properties', () => {
   const p = movePoint(setSymmetry(initialProject(), false), 'C_R', [830, -390, 1200]);
   p.params.primaryThickness = 2.3; p.params.secondaryThickness = 1.9; p.materialDensity = 2700;
   const json = serializeProject(p), raw = JSON.parse(json), loaded = parseProject(raw);
   assert.deepEqual(loaded, JSON.parse(JSON.stringify(p)), 'JSON normalizes negative zero');
   assert.deepEqual(computeFrame(loaded), computeFrame(p));
-  assert.deepEqual(Object.keys(raw).sort(), ['schemaVersion', 'materialDensity', 'name', 'params', 'bracing', 'symmetry', 'offsets'].sort());
+  assert.deepEqual(Object.keys(raw).sort(), ['schemaVersion', 'materialDensity', 'name', 'params', 'bracing', 'symmetry', 'offsets', 'rearEnabled', 'extraTubes'].sort());
   for (const field of ['members', 'totalMass', 'sectionArea', 'volume', 'estimatedMass', 'innerDiameter']) assert.equal(json.includes(`"${field}"`), false);
 });

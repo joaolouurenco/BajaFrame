@@ -1,6 +1,8 @@
 /** X forward, Y left, Z up. Geometry: mm; area: mm²; volume: mm³; mass: kg. */
+import { connectMembers, renderSegments } from './connections';
+import type { Joint, Interference } from './connections';
 export type Vec3 = [number, number, number];
-export type Bracing = 'rear' | 'front' | 'both';
+export type Bracing = 'rear' | 'front' | 'both' | 'none';
 export type Category = 'primary' | 'secondary';
 export type Anchor = 'A' | 'S' | 'B' | 'C' | 'D' | 'F' | 'R';
 export type Side = 'L' | 'R';
@@ -16,8 +18,12 @@ export const PARAMS = {
   roofLength: { label: 'Comprimento do teto', min: 450, max: 1200, step: 10, unit: 'mm', group: 'shape' },
   cockpitLength: { label: 'Comprimento das laterais', min: 700, max: 1600, step: 10, unit: 'mm', group: 'shape' },
   noseLength: { label: 'Extensão do bico', min: 100, max: 650, step: 10, unit: 'mm', group: 'shape' },
-  rearLength: { label: 'Extensão traseira', min: 250, max: 850, step: 10, unit: 'mm', group: 'bracing' },
-  rearHeight: { label: 'Altura do vértice traseiro', min: 250, max: 1000, step: 10, unit: 'mm', group: 'bracing' },
+  rearLength: { label: 'Extensão traseira', min: 250, max: 850, step: 10, unit: 'mm', group: 'rear' },
+  rearHeight: { label: 'Altura do vértice traseiro', min: 250, max: 1000, step: 10, unit: 'mm', group: 'rear' },
+  rearWidth: { label: 'Largura pós-firewall', min: 400, max: 1100, step: 10, unit: 'mm', group: 'rear' },
+  frontUpperPosition: { label: 'Apoio Q no membro superior', min: 5, max: 95, step: 0.1, unit: '%', group: 'bracing' },
+  frontSidePosition: { label: 'Apoio P na lateral', min: 5, max: 95, step: 0.1, unit: '%', group: 'bracing' },
+  frontFloorPosition: { label: 'Apoio J na base', min: 5, max: 95, step: 0.1, unit: '%', group: 'bracing' },
   floorPosition: { label: 'Travessa I ao longo da base', min: 40, max: 80, step: 1, unit: '%', group: 'bracing' },
   primaryDiameter: { label: 'Diâmetro dos primários', min: 20, max: 50, step: 0.1, unit: 'mm', group: 'tubes' },
   secondaryDiameter: { label: 'Diâmetro dos secundários', min: 15, max: 40, step: 0.1, unit: 'mm', group: 'tubes' },
@@ -30,14 +36,17 @@ export const MATERIAL_DENSITY = { min: 1, max: 30000, step: 10, default: 7850 } 
 export type ParamKey = keyof typeof PARAMS;
 export type Parameters = Record<ParamKey, number>;
 export interface Project {
-  schemaVersion: 2;
+  schemaVersion: 3;
   materialDensity: number; // kg/m³; shared by all members
   name: string;
   params: Parameters;
   bracing: Bracing;
+  rearEnabled: boolean;
+  extraTubes: ExtraTube[];
   symmetry: boolean;
   offsets: Record<string, Vec3>;
 }
+export interface ExtraTube { id: string; from: string; to: string; category: Category; mirrored: boolean }
 export interface FramePoint { id: string; position: Vec3; editable: boolean; description: string }
 export interface Member {
   id: string; label: string; category: Category; nodes: string[];
@@ -53,21 +62,24 @@ export interface Frame {
   totalLength: number;
   totalMass: number; primaryMass: number; secondaryMass: number; // kg
   warnings: string[];
+  joints: Joint[];
+  interferences: Interference[];
 }
 export const POINT_NAMES: Record<string, string> = {
   A: 'Base do arco traseiro', S: 'União da lateral ao arco', B: 'Topo do arco traseiro',
   C: 'Encontro do teto com a dianteira', D: 'Extremidade da lateral', F: 'Extremidade do bico',
-  R: 'Vértice do travamento traseiro', H: 'Travessa do arco', I: 'Travessa intermediária da base',
+  R: 'Vértice da estrutura pós-firewall', H: 'Travessa do arco', I: 'Travessa intermediária da base',
   U: 'Travessa sob o assento', V: 'Travessa antissubmarina', P: 'Apoio dianteiro na lateral',
   Q: 'Apoio dianteiro no membro superior', J: 'Apoio dianteiro na base',
 };
 export function initialProject(): Project {
   return {
-    schemaVersion: 2, materialDensity: MATERIAL_DENSITY.default,
+    schemaVersion: 3, materialDensity: MATERIAL_DENSITY.default, rearEnabled: true, extraTubes: [],
     name: 'Frame de estudo 01', symmetry: true, bracing: 'rear', offsets: {},
     params: { baseWidth: 660, topWidth: 760, simWidth: 740, frontWidth: 440,
       rrhHeight: 1180, rrhAngle: 10, simHeight: 420, roofLength: 860,
-      cockpitLength: 1120, noseLength: 300, rearLength: 520, rearHeight: 580,
+      cockpitLength: 1120, noseLength: 300, rearLength: 520, rearHeight: 580, rearWidth: 660,
+      frontUpperPosition: 15, frontSidePosition: 62, frontFloorPosition: 52,
       floorPosition: 64, primaryDiameter: 31.8, secondaryDiameter: 25.4,
       primaryThickness: DEFAULT_PRIMARY_THICKNESS, secondaryThickness: DEFAULT_SECONDARY_THICKNESS },
   };
@@ -107,6 +119,19 @@ export const lerp = (a: Vec3, b: Vec3, t: number): Vec3 => a.map((v, i) => v + (
 export const distance = (a: Vec3, b: Vec3) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
 export const mirror = (p: Vec3): Vec3 => [p[0], -p[1], p[2]];
 export const isAnchorId = (id: string) => /^(A|S|B|C|D|F|R)_[LR]$/.test(id);
+export const hasFrontBracing = (p: Project) => p.bracing === 'front' || p.bracing === 'both';
+export const hasRearBracing = (p: Project) => p.bracing === 'rear' || p.bracing === 'both';
+export const mirrorId = (id: string) => id.replace(/_[LR]$/, id.endsWith('_L') ? '_R' : '_L');
+export const isTubePointId = (id: string) => /^(A|S|B|C|D|F|R|H|I|U|V|P|Q|J)_[LR]$/.test(id);
+
+export function setBracingEnabled(project: Project, location: 'front' | 'rear', enabled: boolean): Project {
+  const front = location === 'front' ? enabled : hasFrontBracing(project);
+  const rear = location === 'rear' ? enabled : hasRearBracing(project);
+  return { ...project, rearEnabled: rear || project.rearEnabled, bracing: front ? (rear ? 'both' : 'front') : rear ? 'rear' : 'none' };
+}
+export function setRearEnabled(project: Project, enabled: boolean): Project {
+  return { ...(enabled ? project : setBracingEnabled(project, 'rear', false)), rearEnabled: enabled };
+}
 
 export function baseAnchors(p: Parameters): Record<string, Vec3> {
   const lean = Math.tan(p.rrhAngle * Math.PI / 180);
@@ -116,7 +141,7 @@ export function baseAnchors(p: Parameters): Record<string, Vec3> {
     C: [-p.rrhHeight * lean + p.roofLength, p.topWidth / 2, p.rrhHeight],
     D: [-p.simHeight * lean + p.cockpitLength, p.simWidth / 2, p.simHeight],
     F: [-p.simHeight * lean + p.cockpitLength + p.noseLength, p.frontWidth / 2, 0],
-    R: [-p.rrhHeight * lean - p.rearLength, p.baseWidth / 2, p.rearHeight],
+    R: [-p.rrhHeight * lean - p.rearLength, p.rearWidth / 2, p.rearHeight],
   };
   return Object.fromEntries(ANCHORS.flatMap(k => [[`${k}_L`, base[k]], [`${k}_R`, mirror(base[k])]]));
 }
@@ -130,7 +155,7 @@ export function computeFrame(project: Project): Frame {
     points[id] = { id, position, editable, description: POINT_NAMES[id.split('_')[0]] };
   };
   for (const [id, pos] of Object.entries(base)) {
-    if (id.startsWith('R_') && project.bracing === 'front') continue;
+    if (id.startsWith('R_') && !project.rearEnabled) continue;
     const leftId = id.replace(/_R$/, '_L');
     const offset = project.symmetry && id.endsWith('_R')
       ? mirror(project.offsets[leftId] ?? [0, 0, 0]) : project.offsets[id] ?? [0, 0, 0];
@@ -142,10 +167,10 @@ export function computeFrame(project: Project): Frame {
     put(`I_${side}`, lerp(pos(`A_${side}`), pos(`F_${side}`), p.floorPosition / 100));
     put(`U_${side}`, lerp(pos(`A_${side}`), pos(`I_${side}`), .60));
     put(`V_${side}`, lerp(pos(`A_${side}`), pos(`I_${side}`), .32));
-    if (project.bracing !== 'rear') {
-      put(`P_${side}`, lerp(pos(`S_${side}`), pos(`D_${side}`), .62));
-      put(`Q_${side}`, lerp(pos(`C_${side}`), pos(`D_${side}`), .15));
-      put(`J_${side}`, lerp(pos(`A_${side}`), pos(`F_${side}`), .52));
+    if (hasFrontBracing(project)) {
+      put(`P_${side}`, lerp(pos(`S_${side}`), pos(`D_${side}`), p.frontSidePosition / 100));
+      put(`Q_${side}`, lerp(pos(`C_${side}`), pos(`D_${side}`), p.frontUpperPosition / 100));
+      put(`J_${side}`, lerp(pos(`A_${side}`), pos(`F_${side}`), p.frontFloorPosition / 100));
     }
   }
   const members: Member[] = [];
@@ -161,21 +186,21 @@ export function computeFrame(project: Project): Frame {
   };
   for (const side of ['L', 'R']) {
     member(`RRH_${side}`, 'Arco traseiro', 'primary', ['A', 'S', 'H', 'B'].map(n => `${n}_${side}`));
-    member(`RHO_FBM_${side}`, 'Teto e membro dianteiro superior', 'primary', ['B', 'C', ...(project.bracing === 'rear' ? [] : ['Q']), 'D'].map(n => `${n}_${side}`));
+    member(`RHO_FBM_${side}`, 'Teto e membro dianteiro superior', 'primary', ['B', 'C', ...(hasFrontBracing(project) ? ['Q'] : []), 'D'].map(n => `${n}_${side}`));
     member(`FBMLOW_${side}`, 'Membro dianteiro inferior', 'primary', [`D_${side}`, `F_${side}`]);
     const floor = ['A', 'V', 'U', 'I', 'F'].map(n => `${n}_${side}`);
-    if (project.bracing !== 'rear') {
+    if (hasFrontBracing(project)) {
       floor.push(`J_${side}`);
       floor.sort((a, b) => distance(pos(`A_${side}`), pos(a)) - distance(pos(`A_${side}`), pos(b)));
     }
     member(`LFS_${side}`, 'Longarina inferior', 'primary', floor);
-    member(`SIM_${side}`, 'Proteção lateral', 'secondary', ['S', ...(project.bracing === 'rear' ? [] : ['P']), 'D'].map(n => `${n}_${side}`));
-    if (project.bracing !== 'front') {
-      for (const [n, anchor] of [['UP', 'B'], ['MID', 'S'], ['LOW', 'A']]) {
-        member(`FAB${n}_${side}`, 'Travamento traseiro', 'secondary', [`${anchor}_${side}`, `R_${side}`]);
-      }
+    member(`SIM_${side}`, 'Proteção lateral', 'secondary', ['S', ...(hasFrontBracing(project) ? ['P'] : []), 'D'].map(n => `${n}_${side}`));
+    if (project.rearEnabled) {
+      member(`FABMID_${side}`, 'Ligação superior pós-firewall', 'secondary', [`S_${side}`, `R_${side}`]);
+      member(`FABLOW_${side}`, 'Ligação inferior pós-firewall', 'secondary', [`A_${side}`, `R_${side}`]);
+      if (hasRearBracing(project)) member(`FABUP_${side}`, 'Travamento traseiro', 'secondary', [`B_${side}`, `R_${side}`]);
     }
-    if (project.bracing !== 'rear') {
+    if (hasFrontBracing(project)) {
       member(`FAB_FRONT_UP_${side}`, 'Travamento dianteiro superior', 'secondary', [`Q_${side}`, `P_${side}`]);
       member(`FAB_FRONT_LOW_${side}`, 'Travamento dianteiro inferior', 'secondary', [`P_${side}`, `J_${side}`]);
     }
@@ -187,15 +212,28 @@ export function computeFrame(project: Project): Frame {
     ['I', 'ILC', 'Travessa intermediária', 'secondary'], ['U', 'USM', 'Travessa sob o assento', 'secondary'],
     ['V', 'ASB', 'Travessa antissubmarina', 'secondary'],
   ]) member(id, label, cat as Category, [`${n}_L`, `${n}_R`]);
-  if (project.bracing !== 'front') member('RLC', 'Travessa traseira', 'secondary', ['R_L', 'R_R']);
+  if (project.rearEnabled) member('RLC', 'Travessa pós-firewall', 'secondary', ['R_L', 'R_R']);
   member('LDB_1', 'Diagonal do arco traseiro', 'secondary', ['A_L', 'B_R']);
   member('LDB_2', 'Diagonal do arco traseiro', 'secondary', ['A_R', 'B_L']);
   member('LFDB_1', 'Diagonal do assoalho', 'secondary', ['A_L', 'I_R']);
   member('LFDB_2', 'Diagonal do assoalho', 'secondary', ['A_R', 'I_L']);
+  const inactive: string[] = [];
+  for (const tube of project.extraTubes) {
+    const pairs = [[tube.from, tube.to], ...(tube.mirrored ? [[mirrorId(tube.from), mirrorId(tube.to)]] : [])];
+    pairs.forEach(([from, to], index) => {
+      if (!points[from] || !points[to]) { inactive.push(tube.id); return; }
+      member(`EXTRA_${tube.id}${index ? '_M' : ''}`, `Tubo adicional ${tube.id}${index ? ' (par)' : ''}`, tube.category, [from, to]);
+    });
+  }
+  const { joints, interferences } = connectMembers(points, members);
   const used = Object.values(points).map(v => v.position);
   const min = [0, 1, 2].map(i => Math.min(...used.map(v => v[i]))) as Vec3;
   const max = [0, 1, 2].map(i => Math.max(...used.map(v => v[i]))) as Vec3;
   const warnings: string[] = [];
+  if (interferences.length) warnings.push(`${interferences.length} interferência(s) entre tubos: confira a lista em Estrutura.`);
+  const shortPieces = members.reduce((sum, m) => sum + m.nodes.length - 1 - renderSegments(points, members, joints, m).length, 0);
+  if (shortPieces) warnings.push(`${shortPieces} trecho(s) muito curto(s) entre encontros não aparecem como tubo. Confira a vista Eixos e afaste os apoios.`);
+  if (inactive.length) warnings.push(`Tubos adicionais inativos por apoios ocultos: ${[...new Set(inactive)].join(', ')}.`);
   for (const m of members) {
     if (m.nodes.slice(1).some((n, i) => distance(pos(n), pos(m.nodes[i])) < 1)) warnings.push(`${m.id}: há pontos praticamente coincidentes.`);
   }
@@ -206,7 +244,7 @@ export function computeFrame(project: Project): Frame {
   const secondaryMass = members.filter(m => m.category === 'secondary').reduce((sum, m) => sum + m.estimatedMass, 0);
   return { points, members, bounds: { min, max, size: max.map((v, i) => v - min[i]) as Vec3, center: lerp(min, max, .5) },
     totalLength: members.reduce((sum, m) => sum + m.length, 0),
-    totalMass: primaryMass + secondaryMass, primaryMass, secondaryMass, warnings };
+    totalMass: primaryMass + secondaryMass, primaryMass, secondaryMass, warnings, joints, interferences };
 }
 
 export function movePoint(project: Project, id: string, target: Vec3): Project {
@@ -229,13 +267,15 @@ export function setSymmetry(project: Project, symmetry: boolean): Project {
 export function parseProject(input: unknown): Project {
   if (!input || typeof input !== 'object') throw new Error('Arquivo de projeto inválido.');
   const v = input as Record<string, unknown>;
-  if (v.schemaVersion !== 1 && v.schemaVersion !== 2) throw new Error('Versão de projeto não suportada. Use um arquivo BajaFrame versão 1 ou 2.');
-  if (!['rear', 'front', 'both'].includes(v.bracing as string) || typeof v.symmetry !== 'boolean') throw new Error('Configuração de travamento ou simetria inválida.');
+  if (![1, 2, 3].includes(v.schemaVersion as number)) throw new Error('Versão de projeto não suportada. Use um arquivo BajaFrame versão 1, 2 ou 3.');
+  if (!['rear', 'front', 'both', ...(v.schemaVersion === 3 ? ['none'] : [])].includes(v.bracing as string) || typeof v.symmetry !== 'boolean') throw new Error('Configuração de travamento ou simetria inválida.');
   if (!v.params || typeof v.params !== 'object') throw new Error('Parâmetros ausentes.');
   const raw = v.params as Record<string, unknown>;
   const params = {} as Parameters;
   for (const key of Object.keys(PARAMS) as ParamKey[]) {
-    const n = v.schemaVersion === 1 && key === 'primaryThickness' ? DEFAULT_PRIMARY_THICKNESS
+    const legacyDefaults: Partial<Record<ParamKey, unknown>> = { rearWidth: raw.baseWidth, frontUpperPosition: 15, frontSidePosition: 62, frontFloorPosition: 52 };
+    const n = v.schemaVersion !== 3 && key in legacyDefaults ? legacyDefaults[key]
+      : v.schemaVersion === 1 && key === 'primaryThickness' ? DEFAULT_PRIMARY_THICKNESS
       : v.schemaVersion === 1 && key === 'secondaryThickness' ? DEFAULT_SECONDARY_THICKNESS : raw[key];
     const def = PARAMS[key];
     if (typeof n !== 'number' || !Number.isFinite(n) || n < def.min || n > def.max) throw new Error(`Parâmetro inválido: ${def.label}.`);
@@ -251,8 +291,45 @@ export function parseProject(input: unknown): Project {
     offsets[key] = [...val] as Vec3;
   }
   if (typeof v.name !== 'string' || !v.name.trim() || v.name.length > 80) throw new Error('Nome de projeto inválido.');
-  const project: Project = { schemaVersion: 2, materialDensity, name: v.name.trim(), params, bracing: v.bracing as Bracing, symmetry: v.symmetry, offsets };
+  const rearEnabled = v.schemaVersion === 3 ? v.rearEnabled : v.bracing !== 'front';
+  if (typeof rearEnabled !== 'boolean' || !rearEnabled && ['rear', 'both'].includes(v.bracing as string)) throw new Error('O travamento traseiro precisa da estrutura pós-firewall ativa.');
+  const extraTubes = v.schemaVersion === 3 ? parseExtraTubes(v.extraTubes) : [];
+  const project: Project = { schemaVersion: 3, materialDensity, name: v.name.trim(), params, bracing: v.bracing as Bracing, rearEnabled, extraTubes, symmetry: v.symmetry, offsets };
   return project.symmetry ? setSymmetry(project, true) : project;
 }
 
 export function serializeProject(project: Project): string { return JSON.stringify(parseProject(project), null, 2); }
+
+function parseExtraTubes(input: unknown): ExtraTube[] {
+  if (!Array.isArray(input) || input.length > 32) throw new Error('Use uma lista com até 32 tubos adicionais.');
+  const ids = new Set<string>(), pairs = new Set<string>();
+  return input.map(value => {
+    if (!value || typeof value !== 'object') throw new Error('Tubo adicional inválido.');
+    const { id, from, to, category, mirrored } = value;
+    if (typeof id !== 'string' || !/^[A-Za-z0-9-]{1,32}$/.test(id) || ids.has(id) ||
+        typeof from !== 'string' || typeof to !== 'string' || !isTubePointId(from) || !isTubePointId(to) || from === to ||
+        !['primary', 'secondary'].includes(category) || typeof mirrored !== 'boolean') throw new Error('Tubo adicional: identificador, apoios ou categoria inválidos.');
+    ids.add(id);
+    for (const pair of [[from, to], ...(mirrored ? [[mirrorId(from), mirrorId(to)]] : [])]) {
+      const key = pair.sort().join('|');
+      if (pairs.has(key)) throw new Error('Há tubos adicionais duplicados, incluindo pares espelhados.');
+      pairs.add(key);
+    }
+    return { id, from, to, category, mirrored };
+  });
+}
+
+export function addExtraTube(project: Project, tube: Omit<ExtraTube, 'id'>): Project {
+  let nextId = 1;
+  while (project.extraTubes.some(t => t.id === `T${nextId}`)) nextId++;
+  const id = `T${nextId}`;
+  const mirrored = tube.mirrored && [tube.from, tube.to].sort().join('|') !== [mirrorId(tube.from), mirrorId(tube.to)].sort().join('|');
+  const next = { ...project, extraTubes: parseExtraTubes([...project.extraTubes, { ...tube, id, mirrored }]) };
+  const frame = computeFrame(next);
+  if (!frame.points[tube.from] || !frame.points[tube.to]) throw new Error('Escolha dois apoios visíveis.');
+  if (distance(frame.points[tube.from].position, frame.points[tube.to].position) < 1) throw new Error('Os apoios estão coincidentes.');
+  if (frame.interferences.some(i => i.kind === 'overlap' && i.members.some(m => m === `EXTRA_${id}` || m === `EXTRA_${id}_M`))) {
+    throw new Error('Esse tubo se sobrepõe a uma ligação existente. Escolha outros apoios.');
+  }
+  return next;
+}
